@@ -5,8 +5,6 @@ from .models import UserProfile
 from django.contrib.auth.models import User
 
 
-# Create your tests here.
-
 
 class TestRegistration(APITestCase):
     def setUp(self):

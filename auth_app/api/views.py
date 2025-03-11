@@ -3,9 +3,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from .serializers import RegistrationSerializer, UserprofileTypeSerializer
 from rest_framework.response import Response
-from auth_app.models import UserProfile
+from coderr_app.models import UserProfile
 from rest_framework import status
 from rest_framework.authtoken.views import ObtainAuthToken
+from coderr_app.api.serializers import UserProfileSerializer
 
 
 class RegistrationView(APIView):
@@ -27,11 +28,19 @@ class RegistrationView(APIView):
                 'email': saved_account.email,
                 'user_id': saved_account.id
             }
-            if type_serializer.is_valid():
-                profil_type = type_serializer.validated_data.get('type')
-                UserProfile.objects.create(
-                    user=saved_account, type=profil_type)
-            return Response(data, status=status.HTTP_200_OK)
+            profile_data = {
+                'user': saved_account.id,
+                'type': p_type,
+                'username': saved_account.username,
+                'email': saved_account.email
+            }
+            profile_serializer = UserProfileSerializer(data=profile_data)
+            if profile_serializer.is_valid():
+                profile_serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                print("profile_serializer.errors",profile_serializer.errors)
+                return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             data = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -42,7 +51,7 @@ class CustomLoginView(ObtainAuthToken):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        print("request data",request.data)
+        print("request data", request.data)
 
         data = {}
 
