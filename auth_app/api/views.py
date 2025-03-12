@@ -9,38 +9,34 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from coderr_app.api.serializers import UserProfileSerializer
 
 
+def set_user_profile(profile_data):
+    serializer = UserProfileSerializer(data=profile_data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    else:
+        print("profile_serializer.errors",serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
         p_type = request.data.pop('type')
-        type_data = {"type": p_type}
-        type_serializer = UserprofileTypeSerializer(data=type_data)
         serializer = RegistrationSerializer(data=request.data)
 
         data = {}
         if serializer.is_valid():
             saved_account = serializer.save()
             token, created = Token.objects.get_or_create(user=saved_account)
+            set_user_profile({'user': saved_account.id, 'type': p_type, 'username': saved_account.username,'email': saved_account.email})
             data = {
                 'token': token.key,
                 'username': saved_account.username,
-                'email': saved_account.email,
                 'user_id': saved_account.id
             }
-            profile_data = {
-                'user': saved_account.id,
-                'type': p_type,
-                'username': saved_account.username,
-                'email': saved_account.email
-            }
-            profile_serializer = UserProfileSerializer(data=profile_data)
-            if profile_serializer.is_valid():
-                profile_serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                print("profile_serializer.errors",profile_serializer.errors)
-                return Response(profile_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(data, status=status.HTTP_201_CREATED)
         else:
             data = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
@@ -51,7 +47,6 @@ class CustomLoginView(ObtainAuthToken):
 
     def post(self, request):
         serializer = self.serializer_class(data=request.data)
-        print("request data", request.data)
 
         data = {}
 

@@ -1,8 +1,8 @@
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 from django.urls import reverse
-from .models import UserProfile
 from django.contrib.auth.models import User
+from coderr_app.models import UserProfile
 
 
 
@@ -19,16 +19,22 @@ class TestRegistration(APITestCase):
                 "type": 'customer'
                 }
         response = self.client.post(url, data, format='json')
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
 
 class TestLogin(APITestCase):
     def setUp(self):
         self.client = APIClient()
-        User.objects.create_user(username="testuser",
+        new_user = User.objects.create_user(username="testuser",
                                  email="test@example.com",
                                  password="test",
                                 )
+        UserProfile.objects.create(
+            user=new_user,
+            type='customer',
+            username='testuser',
+            email='test@mail.com'
+        )
 
     def test_login(self):
         url = reverse('login')
