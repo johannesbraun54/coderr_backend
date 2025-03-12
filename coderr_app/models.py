@@ -20,7 +20,7 @@ class UserProfile(models.Model):
 class Offer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='uploads/', null=True)
+    image = models.ImageField(upload_to='uploads/images/', null=True)
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_created=True)
     updated_at = models.DateTimeField()
