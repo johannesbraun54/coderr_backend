@@ -11,7 +11,7 @@ class UserProfile(models.Model):
     last_name = models.CharField(max_length=64, null=True)
     file = models.ImageField(upload_to='uploads/', null=True)
     location = models.CharField(max_length=64, null=True)
-    tel = models.IntegerField(null=True)
+    tel = models.CharField(max_length=64, null=True)
     description = models.CharField(max_length=256, null=True)
     working_hours = models.CharField(max_length=24, null=True)
     created_at = models.DateTimeField(auto_now=True)
