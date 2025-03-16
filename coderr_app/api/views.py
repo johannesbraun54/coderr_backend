@@ -75,6 +75,13 @@ def validate_offer_details(details, saved_offer_id):
 
 class OffersView(GenericAPIView):
 
+    
+    def get(self, request):
+        serializer = OffersSerializer(data=request.data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
+
     def post(self, request):
         data = request.data
         data['user'] = request.user.id
