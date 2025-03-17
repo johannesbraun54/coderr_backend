@@ -19,9 +19,6 @@ class TestOffers(APITestCase):
         #     image=None,
         #     description="Ein umfassendes Grafikdesign-Paket für Unternehmen.",
         # )
-        
-    def test_get_offer(self):
-        pass
 
 
     def test_offer_post(self):
@@ -71,3 +68,8 @@ class TestOffers(APITestCase):
 }
         response = self.client.post(url, data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_get_offer(self):
+            url = reverse('offers-list')
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, status.HTTP_200_OK)

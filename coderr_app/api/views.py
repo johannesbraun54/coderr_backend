@@ -73,8 +73,14 @@ def validate_offer_details(details, saved_offer_id):
             return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class OffersView(GenericAPIView):
+class OfferDetailView(GenericAPIView):
+    def get(self, request):
+        serializer = OffersSerializer(data=request.data, context={'request':request})
+        if serializer.is_valid():
+            serializer.save()
+        return Response(serializer.data)
 
+class OffersView(GenericAPIView):
     
     def get(self, request):
         serializer = OffersSerializer(data=request.data, context={'request':request})
