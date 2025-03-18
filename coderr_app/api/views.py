@@ -64,29 +64,43 @@ class ProfileCustomerListView(GenericAPIView, ListModelMixin):
 
 def validate_offer_details(details, saved_offer_id):
     for detail in details:
-        detail['offer_id'] = saved_offer_id
+        print("detail", detail)
+        detail['offer'] = saved_offer_id
         details_serializer = OfferDetailsSerializer(data=detail)
         if details_serializer.is_valid():
             details_serializer.save()
-            return Response(details_serializer.data, status=status.HTTP_201_CREATED)
         else:
+            print("Serializer Errors:", details_serializer.errors)
             return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(details_serializer.data, status=status.HTTP_201_CREATED)
 
 
 class OfferDetailView(GenericAPIView):
     def get(self, request):
-        serializer = OffersSerializer(data=request.data, context={'request':request})
+        serializer = OfferDetailsSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
         return Response(serializer.data)
 
-class OffersView(GenericAPIView):
-    
-    def get(self, request):
-        serializer = OffersSerializer(data=request.data, context={'request':request})
+    def post(self, request):
+        serializer = OfferDetailsSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             serializer.save()
-        return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            # print("Serializer Errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OffersView(GenericAPIView):
+
+    # def get(self, request):
+    #     serializer = OffersSerializer(data=request.data, context={'request':request})
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #     return Response(serializer.data)
 
     def post(self, request):
         data = request.data
@@ -95,11 +109,12 @@ class OffersView(GenericAPIView):
         # print("titles",data['details'][0]['title'])
         # print(data)
         details = request.data['details']
-        serializer = OffersSerializer(data=request.data)
+        serializer = OffersSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             saved_offer = serializer.save()
             validate_offer_details(details, saved_offer.id)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            # print("Serializer Errors:", serializer.errors)
+            print("Serializer Errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

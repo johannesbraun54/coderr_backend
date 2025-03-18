@@ -29,8 +29,9 @@ class OfferDetailsSerializer(serializers.ModelSerializer):
         model = OfferDetails
         fields = '__all__'
 
-    offer_id = serializers.PrimaryKeyRelatedField(
-        queryset=Offer.objects.all(), write_only=True)
+  
+    offer = serializers.PrimaryKeyRelatedField(
+        queryset=Offer.objects.all())
   
 
 
