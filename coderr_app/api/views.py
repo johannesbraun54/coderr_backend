@@ -61,20 +61,6 @@ class ProfileCustomerListView(GenericAPIView, ListModelMixin):
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-
-def validate_offer_details(details, saved_offer_id):
-    for detail in details:
-        print("detail", detail)
-        detail['offer'] = saved_offer_id
-        details_serializer = OfferDetailsSerializer(data=detail)
-        if details_serializer.is_valid():
-            details_serializer.save()
-        else:
-            print("Serializer Errors:", details_serializer.errors)
-            return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response(details_serializer.data, status=status.HTTP_201_CREATED)
-
-
 class OfferDetailView(GenericAPIView):
     def get(self, request):
         serializer = OfferDetailsSerializer(
@@ -94,20 +80,39 @@ class OfferDetailView(GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+def validate_offer_details(details, saved_offer_id):
+    for detail in details:
+        print("detail", detail)
+        detail['offer'] = saved_offer_id
+        details_serializer = OfferDetailsSerializer(data=detail)
+        if details_serializer.is_valid():
+            details_serializer.save()
+        else:
+            print("Serializer Errors:", details_serializer.errors)
+            return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    return Response(details_serializer.data, status=status.HTTP_201_CREATED)
+
+
+class SingleOfferView(GenericAPIView, UpdateModelMixin):
+
+    queryset = Offer.objects.all()
+    serializer_class = OffersSerializer
+
+    def patch(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    
+
 class OffersView(GenericAPIView):
 
-    # def get(self, request):
-    #     serializer = OffersSerializer(data=request.data, context={'request':request})
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #     return Response(serializer.data)
-
+    def get(self, request):
+        offers = Offer.objects.all()
+        serializer = OffersSerializer(offers, many=True, context={'request':request})
+        return Response(serializer.data)
+         
     def post(self, request):
         data = request.data
         data['user'] = request.user.id
-        # data['details'][0]['offer_id'] =
-        # print("titles",data['details'][0]['title'])
-        # print(data)
         details = request.data['details']
         serializer = OffersSerializer(
             data=request.data, context={'request': request})
