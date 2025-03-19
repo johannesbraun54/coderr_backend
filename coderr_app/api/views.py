@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin, CreateModelMixin
 from coderr_app.models import UserProfile, Offer, OfferDetails
-from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer
+from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -14,18 +14,22 @@ class ImageUploadView(APIView):
         serializer = ImageUploadSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
+            print("serializer.data",serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("serializer.errors",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-# class OfferImageUploadView(APIView):
 
-#     def post(self, request, format=None):
-#         print("request.data", request.data)
-#         serializer = OfferImageUploadSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data, status=status.HTTP_201_CREATED)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+class OfferImageUploadView(APIView):
+
+    def post(self, request, format=None):
+        print("request.data", request.data)
+        serializer = OfferImageUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("serializer.errors",serializer.errors)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
@@ -105,10 +109,10 @@ class SingleOfferView(GenericAPIView, UpdateModelMixin):
 
 class OffersView(GenericAPIView):
 
-    def get(self, request):
-        offers = Offer.objects.all()
-        serializer = OffersSerializer(offers, many=True, context={'request':request})
-        return Response(serializer.data)
+    # def get(self, request):
+    #     offers = Offer.objects.all()
+    #     serializer = OffersSerializer(offers, many=True, context={'request':request})
+    #     return Response(serializer.data)
          
     def post(self, request):
         data = request.data
