@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
     'coderr_app',
-    'auth_app'
+    'auth_app',
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -59,17 +60,17 @@ MIDDLEWARE = [
 
 CSRF_TRUSTED_ORIGINS = [
 
-  'http://127.0.0.1:5500',
+    'http://127.0.0.1:5500',
 
-  'http://localhost:5500',
+    'http://localhost:5500',
 
 ]
 
 CORS_ALLOWED_ORIGINS = [
 
-  'http://127.0.0.1:5500',
+    'http://127.0.0.1:5500',
 
-  'http://localhost:5500',
+    'http://localhost:5500',
 
 ]
 
@@ -153,6 +154,10 @@ REST_FRAMEWORK = {
 
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
+    ],
+
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend'
     ]
 
 }

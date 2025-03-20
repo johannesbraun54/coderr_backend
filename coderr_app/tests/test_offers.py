@@ -98,6 +98,8 @@ class TestOffers(APITestCase):
                     ],
                     "offer_type": "premium"
                 }
+
+
             ]
         }
         response = self.client.post(url, data, format='json')
@@ -111,10 +113,10 @@ class TestOffers(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
-    # def test_get_offer(self):
-    #     url = reverse('offers-list')
-    #     response = self.client.get(url)
-    #     # expected_data = OffersSerializer(instance=self.offer,context={'request': self.client})
-    #     self.assertEqual(response.status_code, status.HTTP_200_OK)
-    #     # self.assertJSONEqual(response.content, expected_data)
-    #     print("response.data", response.content)
+    def test_get_offer(self):
+        url = reverse('offers-list')
+        response = self.client.get(url)
+        # expected_data = OffersSerializer(instance=self.offer,context={'request': self.client})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # self.assertJSONEqual(response.content, expected_data)
+        print("response.data", response.content)

@@ -6,6 +6,10 @@ from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import filters
+from django_filters.rest_framework import DjangoFilterBackend
+from .paginations import LargeResultsSetPagination
+
 
 
 class ImageUploadView(APIView):
@@ -84,11 +88,11 @@ class OfferDetailView(GenericAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-def validate_offer_details(details, saved_offer_id):
+def validate_offer_details(details, saved_offer_id, request):
     for detail in details:
         print("detail", detail)
         detail['offer'] = saved_offer_id
-        details_serializer = OfferDetailsSerializer(data=detail)
+        details_serializer = OfferDetailsSerializer(data=detail, context={'request': request})
         if details_serializer.is_valid():
             details_serializer.save()
         else:
@@ -107,22 +111,39 @@ class SingleOfferView(GenericAPIView, UpdateModelMixin):
 
     
 
-class OffersView(GenericAPIView):
+class OffersView(GenericAPIView , ListModelMixin):
 
-    # def get(self, request):
-    #     offers = Offer.objects.all()
-    #     serializer = OffersSerializer(offers, many=True, context={'request':request})
-    #     return Response(serializer.data)
+    queryset = Offer.objects.all()
+    serializer_class = OffersSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    permission_classes = [AllowAny]
+    filterset_fields = ['user', 'min_price', 'max_delivery_time']
+    search_fields = ['title', 'description']
+    ordering_fields = ['updated_at', 'min_price']
+    ordering = ['updated_at']
+    pagination_class = LargeResultsSetPagination
+
+
+    def get(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
          
     def post(self, request):
         data = request.data
         data['user'] = request.user.id
         details = request.data['details']
+        prices = []
+        delivery_times = []
+        for detail in details:
+            prices.append(detail['price'])
+            delivery_times.append(detail['delivery_time_in_days'])
+
+        data['min_price'] = min(prices)
+        data['max_delivery_time'] = max(delivery_times)
         serializer = OffersSerializer(
             data=request.data, context={'request': request})
         if serializer.is_valid():
             saved_offer = serializer.save()
-            validate_offer_details(details, saved_offer.id)
+            validate_offer_details(details, saved_offer.id, request)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             print("Serializer Errors:", serializer.errors)

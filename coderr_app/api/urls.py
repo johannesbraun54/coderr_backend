@@ -9,6 +9,6 @@ urlpatterns = [
     path('profiles/customer/', ProfileCustomerListView.as_view(), name='profile-customer-list'),
     path('offers/', OffersView.as_view(), name='offers-list'),
     path('offers/<int:pk>/', SingleOfferView.as_view(), name='offers-detail'),
-    path('offerdetails/<int:pk>/', OfferDetailView.as_view(), name='offer-detail')
+    path('offerdetails/<int:pk>/', OfferDetailView.as_view(), name='offerdetails-detail')
 ]
 

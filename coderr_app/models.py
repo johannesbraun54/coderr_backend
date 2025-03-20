@@ -24,6 +24,8 @@ class Offer(models.Model):
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
+    min_price = models.DecimalField(max_digits=10, decimal_places=2)
+    max_delivery_time = models.IntegerField()
 
 
 class OfferDetails(models.Model):
