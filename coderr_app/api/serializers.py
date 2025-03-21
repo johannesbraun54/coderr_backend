@@ -56,7 +56,7 @@ class OffersSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all(), write_only=True)
+        queryset=User.objects.all())
 
     # details = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='offer-detail')
     details = OfferDetailsSerializer(many=True, read_only=True, fields=('id', 'url'))

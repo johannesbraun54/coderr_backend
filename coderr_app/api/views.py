@@ -9,8 +9,10 @@ from rest_framework import status
 from rest_framework import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from .paginations import LargeResultsSetPagination
+from .functions import validate_offer_details, get_detail_keyfacts
 
 
+################################################ IMAGEUPLOAD_VIEWS ################################################
 
 class ImageUploadView(APIView):
 
@@ -18,22 +20,20 @@ class ImageUploadView(APIView):
         serializer = ImageUploadSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            print("serializer.data",serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("serializer.errors",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OfferImageUploadView(APIView):
 
     def post(self, request, format=None):
-        print("request.data", request.data)
         serializer = OfferImageUploadSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("serializer.errors",serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+################################################ PROFILE_VIEWS ################################################
 
 
 class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
@@ -69,49 +69,9 @@ class ProfileCustomerListView(GenericAPIView, ListModelMixin):
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
 
-class OfferDetailView(GenericAPIView):
-    def get(self, request):
-        serializer = OfferDetailsSerializer(
-            data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-        return Response(serializer.data)
+################################################ OFFER_VIEWS ################################################
 
-    def post(self, request):
-        serializer = OfferDetailsSerializer(
-            data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            # print("Serializer Errors:", serializer.errors)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-def validate_offer_details(details, saved_offer_id, request):
-    for detail in details:
-        print("detail", detail)
-        detail['offer'] = saved_offer_id
-        details_serializer = OfferDetailsSerializer(data=detail, context={'request': request})
-        if details_serializer.is_valid():
-            details_serializer.save()
-        else:
-            print("Serializer Errors:", details_serializer.errors)
-            return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return Response(details_serializer.data, status=status.HTTP_201_CREATED)
-
-
-class SingleOfferView(GenericAPIView, UpdateModelMixin):
-
-    queryset = Offer.objects.all()
-    serializer_class = OffersSerializer
-
-    def patch(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    
-
-class OffersView(GenericAPIView , ListModelMixin):
+class OffersView(GenericAPIView, ListModelMixin):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
@@ -123,28 +83,45 @@ class OffersView(GenericAPIView , ListModelMixin):
     ordering = ['updated_at']
     pagination_class = LargeResultsSetPagination
 
-
     def get(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-         
-    def post(self, request):
-        data = request.data
-        data['user'] = request.user.id
-        details = request.data['details']
-        prices = []
-        delivery_times = []
-        for detail in details:
-            prices.append(detail['price'])
-            delivery_times.append(detail['delivery_time_in_days'])
 
-        data['min_price'] = min(prices)
-        data['max_delivery_time'] = max(delivery_times)
-        serializer = OffersSerializer(
-            data=request.data, context={'request': request})
+    def post(self, request):
+        request.data['user'] = request.user.id
+        get_detail_keyfacts(request)
+        details = request.data['details']
+        serializer = OffersSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             saved_offer = serializer.save()
             validate_offer_details(details, saved_offer.id, request)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            print("Serializer Errors:", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin):
+
+    queryset = Offer.objects.all()
+    serializer_class = OffersSerializer
+
+    def get(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
+
+    queryset = OfferDetails.objects.all()
+    serializer_class = OfferDetailsSerializer
+    
+    def get(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+
+
+
+
+
+
