@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin, CreateModelMixin
+from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin, CreateModelMixin, DestroyModelMixin
 from coderr_app.models import UserProfile, Offer, OfferDetails
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -39,7 +39,6 @@ class OfferImageUploadView(APIView):
 class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
-    permission_classes = [IsAuthenticated]
     lookup_field = 'user'
 
     def get(self, request, *args, **kwargs):
@@ -98,7 +97,7 @@ class OffersView(GenericAPIView, ListModelMixin):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin):
+class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
@@ -108,6 +107,9 @@ class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin):
 
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
+    
+    def delete(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
 
 class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
 
