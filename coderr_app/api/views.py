@@ -1,15 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin, CreateModelMixin, DestroyModelMixin
-from coderr_app.models import UserProfile, Offer, OfferDetails
-from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from rest_framework import status
-from rest_framework import filters
+from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
-from .paginations import LargeResultsSetPagination
+from coderr_app.models import UserProfile, Offer, OfferDetails
+from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer
 from .functions import validate_offer_details, get_detail_keyfacts
+from .paginations import LargeResultsSetPagination
+from .permissions import IsOwnerPermission, IsBusinessUserPermission
 
 
 ################################################ IMAGEUPLOAD_VIEWS ################################################
@@ -37,6 +37,7 @@ class OfferImageUploadView(APIView):
 
 
 class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
+    permission_classes = [IsOwnerPermission]
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     lookup_field = 'user'
@@ -75,7 +76,7 @@ class OffersView(GenericAPIView, ListModelMixin):
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    permission_classes = [AllowAny]
+    permission_classes = [IsBusinessUserPermission]
     filterset_fields = ['user', 'min_price', 'max_delivery_time']
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
@@ -86,6 +87,8 @@ class OffersView(GenericAPIView, ListModelMixin):
         return super().list(request, *args, **kwargs)
 
     def post(self, request):
+        obj = request.data
+        self.check_object_permissions(self.request, obj)
         request.data['user'] = request.user.id
         get_detail_keyfacts(request)
         details = request.data['details']
@@ -101,6 +104,7 @@ class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin, Dest
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
+    permission_classes = [IsOwnerPermission]
 
     def get(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
