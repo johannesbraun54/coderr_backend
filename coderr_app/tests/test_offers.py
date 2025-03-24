@@ -1,6 +1,6 @@
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from coderr_app.models import Offer, OfferDetails
+from coderr_app.models import Offer, OfferDetails, UserProfile
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
@@ -12,6 +12,12 @@ class TestOffers(APITestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='testuser',
                                              email='test@mail.com')
+        self.userprofile = UserProfile.objects.create(
+            user=self.user,
+            type='business',
+            username='testuser',
+            email='test@mail.com'
+        )
         self.token = Token.objects.create(user=self.user)
         self.client = APIClient()
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)

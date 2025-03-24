@@ -37,3 +37,11 @@ class OfferDetails(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2)
     features = models.JSONField()
     offer_type = models.CharField(max_length=255)
+
+class Review(models.Model):
+    business_user= models.ForeignKey(User, on_delete=models.CASCADE)
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE),
+    rating= models.IntegerField()
+    description= models.CharField(max_length=1024)
+    created_at= models.DateTimeField(auto_now=True) # richtig auto_now=True ? 
+    updated_at= models.DateTimeField(auto_now=True)

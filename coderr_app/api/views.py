@@ -127,7 +127,10 @@ class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
         return super().create(request, *args, **kwargs)
 
 
+################################################ REVIEW_VIEWS ################################################
 
+class ReviewsView(GenericAPIView):
+    pass
 
 
 
