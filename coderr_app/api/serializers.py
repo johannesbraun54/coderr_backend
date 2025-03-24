@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from coderr_app.models import UserProfile, Offer, OfferDetails
+from coderr_app.models import UserProfile, Offer, OfferDetails, Review
 from django.contrib.auth.models import User
 
 
@@ -58,5 +58,10 @@ class OffersSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all())
 
-    # details = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='offer-detail')
     details = OfferDetailsSerializer(many=True, read_only=True, fields=('id', 'url'))
+
+class ReviewSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Review
+        fields = ['business_user', 'reviewer', 'rating', 'description', 'created_at','updated_at']

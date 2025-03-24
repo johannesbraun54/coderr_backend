@@ -5,8 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
-from coderr_app.models import UserProfile, Offer, OfferDetails
-from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer
+from coderr_app.models import UserProfile, Offer, OfferDetails, Review
+from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer
 from .functions import validate_offer_details, get_detail_keyfacts
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission
@@ -32,7 +32,7 @@ class OfferImageUploadView(APIView):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
 ################################################ PROFILE_VIEWS ################################################
 
 
@@ -71,11 +71,13 @@ class ProfileCustomerListView(GenericAPIView, ListModelMixin):
 
 ################################################ OFFER_VIEWS ################################################
 
+
 class OffersView(GenericAPIView, ListModelMixin):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
     permission_classes = [IsBusinessUserPermission]
     filterset_fields = ['user', 'min_price', 'max_delivery_time']
     search_fields = ['title', 'description']
@@ -92,14 +94,16 @@ class OffersView(GenericAPIView, ListModelMixin):
         request.data['user'] = request.user.id
         get_detail_keyfacts(request)
         details = request.data['details']
-        serializer = OffersSerializer(data=request.data, context={'request': request})
+        serializer = OffersSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
             saved_offer = serializer.save()
             validate_offer_details(details, saved_offer.id, request)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
+
 class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin):
 
     queryset = Offer.objects.all()
@@ -111,26 +115,32 @@ class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin, Dest
 
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
-    
+
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+
 
 class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
 
     queryset = OfferDetails.objects.all()
     serializer_class = OfferDetailsSerializer
-    
+
     def get(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-    
+
     def post(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
 
 ################################################ REVIEW_VIEWS ################################################
 
-class ReviewsView(GenericAPIView):
-    pass
+class ReviewsView(GenericAPIView, ListModelMixin):
 
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['business_user_id', 'reviewer_id']
+    ordering_fields = ['updated_at', 'rating']
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
 
-
+    def get(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)

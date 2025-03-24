@@ -6,7 +6,6 @@ from rest_framework.permissions import BasePermission, IsAuthenticated, SAFE_MET
 class IsOwnerPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        print("IsOwnerPermission")
         if request.method in permissions.SAFE_METHODS:
             return True
         elif request.method in ['PUT', 'PATCH', 'DELETE']:
