@@ -134,7 +134,7 @@ class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
 
 ################################################ REVIEW_VIEWS ################################################
 
-class ReviewsView(GenericAPIView, ListModelMixin):
+class ReviewsListView(GenericAPIView, ListModelMixin, ):
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['business_user_id', 'reviewer_id']
@@ -157,3 +157,14 @@ class ReviewsView(GenericAPIView, ListModelMixin):
         else:
             print("serializer.errors", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class ReviewsDetailView(GenericAPIView,RetrieveModelMixin, UpdateModelMixin):
+
+    def get(self, request, *args, **kwargs):
+        return super().retrieve(request, *args, **kwargs)
+    
+    def patch(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+
+    

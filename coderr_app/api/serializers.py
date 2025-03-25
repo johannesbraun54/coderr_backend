@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review
 from django.contrib.auth.models import User
+from rest_framework import status
+
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):
@@ -78,8 +80,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         has_already_rated_user = Review.objects.filter(
             business_user=new_business_user, reviewer=new_reviewer).exists()
         if not has_already_rated_user:
-            # print("has_already_rated_user",has_already_rated_user)
             return super().create(validated_data)
         else:
             raise serializers.ValidationError(
-                'du hast den user schonmal bewertet')
+                'du hast den user schonmal bewertet', status.HTTP_400_BAD_REQUEST )
