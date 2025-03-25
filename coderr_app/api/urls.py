@@ -11,6 +11,6 @@ urlpatterns = [
     path('offers/<int:pk>/', SingleOfferView.as_view(), name='offers-detail'),
     path('offerdetails/<int:pk>/', OfferDetailView.as_view(), name='offerdetails-detail'),
     path("reviews/", ReviewsListView.as_view(), name="reviews-list"),
-    path("reviews/<int:pk>", ReviewsDetailView.as_view(), name="reviews-detail")
+    path("reviews/<int:pk>/", ReviewsDetailView.as_view(), name="reviews-detail")
 ]
 

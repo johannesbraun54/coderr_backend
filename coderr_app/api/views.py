@@ -157,14 +157,20 @@ class ReviewsListView(GenericAPIView, ListModelMixin, ):
         else:
             print("serializer.errors", serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-class ReviewsDetailView(GenericAPIView,RetrieveModelMixin, UpdateModelMixin):
+
+
+class ReviewsDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin):
+
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    # permission_classes = [IsOwnerPermission, IsBusinessUserPermission]
+    lookup_field = "pk"
 
     def get(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
-    
+
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-
-    
+    def delete(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)
