@@ -58,10 +58,28 @@ class OffersSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all())
 
-    details = OfferDetailsSerializer(many=True, read_only=True, fields=('id', 'url'))
+    details = OfferDetailsSerializer(
+        many=True, read_only=True, fields=('id', 'url'))
+
 
 class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ['business_user', 'reviewer', 'rating', 'description', 'created_at','updated_at']
+        exclude = []
+
+    business_user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all())
+    reviewer = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    def create(self, validated_data):
+        new_business_user = validated_data.get('business_user')
+        new_reviewer = validated_data.get('reviewer')
+        has_already_rated_user = Review.objects.filter(
+            business_user=new_business_user, reviewer=new_reviewer).exists()
+        if not has_already_rated_user:
+            # print("has_already_rated_user",has_already_rated_user)
+            return super().create(validated_data)
+        else:
+            raise serializers.ValidationError(
+                'du hast den user schonmal bewertet')

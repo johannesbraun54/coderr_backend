@@ -9,7 +9,7 @@ from coderr_app.models import UserProfile, Offer, OfferDetails, Review
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer
 from .functions import validate_offer_details, get_detail_keyfacts
 from .paginations import LargeResultsSetPagination
-from .permissions import IsOwnerPermission, IsBusinessUserPermission
+from .permissions import IsOwnerPermission, IsBusinessUserPermission, ReviewPermission
 
 
 ################################################ IMAGEUPLOAD_VIEWS ################################################
@@ -141,6 +141,19 @@ class ReviewsView(GenericAPIView, ListModelMixin):
     ordering_fields = ['updated_at', 'rating']
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
+    permission_classes = [ReviewPermission]
 
     def get(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+
+    def post(self, request):
+        obj = self.request
+        self.check_object_permissions(obj, request.data)
+        request.data['reviewer'] = request.user.id
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("serializer.errors", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

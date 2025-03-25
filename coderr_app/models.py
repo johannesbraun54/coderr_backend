@@ -43,5 +43,5 @@ class Review(models.Model):
     reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviewer')
     rating= models.IntegerField()
     description= models.CharField(max_length=1024)
-    created_at= models.DateTimeField(auto_now_add=True) # richtig auto_now=True ? 
+    created_at= models.DateTimeField(auto_now_add=True)
     updated_at= models.DateTimeField(auto_now=True)
