@@ -9,7 +9,7 @@ from coderr_app.models import UserProfile, Offer, OfferDetails, Review
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer
 from .functions import validate_offer_details, get_detail_keyfacts
 from .paginations import LargeResultsSetPagination
-from .permissions import IsOwnerPermission, IsBusinessUserPermission, ReviewPermission
+from .permissions import IsOwnerPermission, IsBusinessUserPermission, ReviewPermission, ReviewPatchPermission
 
 
 ################################################ IMAGEUPLOAD_VIEWS ################################################
@@ -147,9 +147,9 @@ class ReviewsListView(GenericAPIView, ListModelMixin, ):
         return super().list(request, *args, **kwargs)
 
     def post(self, request):
-        obj = self.request
-        self.check_object_permissions(obj, request.data)
+        obj =  request.data
         request.data['reviewer'] = request.user.id
+        self.check_object_permissions(self.request, obj)
         serializer = ReviewSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -163,7 +163,7 @@ class ReviewsDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, De
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    # permission_classes = [IsOwnerPermission, IsBusinessUserPermission]
+    permission_classes = [ReviewPatchPermission]
     lookup_field = "pk"
 
     def get(self, request, *args, **kwargs):
