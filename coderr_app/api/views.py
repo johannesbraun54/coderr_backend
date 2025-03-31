@@ -5,9 +5,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
-from coderr_app.models import UserProfile, Offer, OfferDetails, Review
-from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer
-from .functions import validate_offer_details, get_detail_keyfacts
+from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
+from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
+from .functions import validate_offer_details, get_detail_keyfacts, create_new_order
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, ReviewPermission, ReviewPatchPermission
 
@@ -134,7 +134,7 @@ class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
 
 ################################################ REVIEW_VIEWS ################################################
 
-class ReviewsListView(GenericAPIView, ListModelMixin, ):
+class ReviewsListView(GenericAPIView, ListModelMixin):
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['business_user_id', 'reviewer_id']
@@ -147,7 +147,7 @@ class ReviewsListView(GenericAPIView, ListModelMixin, ):
         return super().list(request, *args, **kwargs)
 
     def post(self, request):
-        obj =  request.data
+        obj = request.data
         request.data['reviewer'] = request.user.id
         self.check_object_permissions(self.request, obj)
         serializer = ReviewSerializer(data=request.data)
@@ -174,3 +174,24 @@ class ReviewsDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, De
 
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+
+
+################################################ ORDER_VIEWS ################################################
+
+class OrdersView(GenericAPIView, ListModelMixin):
+
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+
+    def get(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def post(self, request):
+        create_new_order(request)
+        print(request.data)
+        serializer = OrderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

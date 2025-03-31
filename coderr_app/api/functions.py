@@ -17,13 +17,29 @@ def validate_offer_details(details, saved_offer_id, request):
 
 
 def get_detail_keyfacts(request):
-        details = request.data['details']
-        prices = []
-        delivery_times = []
-        for detail in details:
-            prices.append(detail['price'])
-            delivery_times.append(detail['delivery_time_in_days'])
-            request.data['min_price'] = min(prices)
-            request.data['max_delivery_time'] = max(delivery_times)
-        
-        return request
+    details = request.data['details']
+    prices = []
+    delivery_times = []
+    for detail in details:
+        prices.append(detail['price'])
+        delivery_times.append(detail['delivery_time_in_days'])
+        request.data['min_price'] = min(prices)
+        request.data['max_delivery_time'] = max(delivery_times)
+
+    return request
+
+
+def create_new_order(request):
+    offer_detail_id = request.data['offer_detail_id']
+    print(offer_detail_id)
+    new_order = OfferDetails.objects.all()[offer_detail_id]
+    request.data['customer_user'] = request.user.id
+    request.data['business_user'] = new_order.offer.user.id
+    request.data['title'] = new_order.title
+    request.data['revisions'] = new_order.revisions
+    request.data['delivery_time_in_days'] = new_order.delivery_time_in_days
+    request.data['price'] = new_order.price
+    request.data['features'] = new_order.features
+    request.data['offer_type'] = new_order.offer_type
+    request.data['status'] = "in_progress"
+    return request

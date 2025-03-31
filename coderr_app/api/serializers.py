@@ -1,8 +1,7 @@
 from rest_framework import serializers
-from coderr_app.models import UserProfile, Offer, OfferDetails, Review
+from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from django.contrib.auth.models import User
 from rest_framework import status
-
 
 
 class ImageUploadSerializer(serializers.ModelSerializer):
@@ -83,4 +82,11 @@ class ReviewSerializer(serializers.ModelSerializer):
             return super().create(validated_data)
         else:
             raise serializers.ValidationError(
-                'du hast den user schonmal bewertet', status.HTTP_400_BAD_REQUEST )
+                'du hast den user schonmal bewertet', status.HTTP_400_BAD_REQUEST)
+
+
+class OrderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Order
+        fields = '__all__'
