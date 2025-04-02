@@ -1,0 +1,95 @@
+from django.contrib.auth.models import User
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient, APITestCase
+from coderr_app.models import Offer, OfferDetails, UserProfile, Order
+
+
+def create_and_login_test_user(self):
+    self.user = User.objects.create_user(
+        username='testuser', email='test@mail.com')
+    self.token = Token.objects.create(user=self.user)
+    self.client = APIClient()
+    self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
+
+
+def create_and_login_SECOND_test_user(self):
+    self.second_user = User.objects.create_user(
+        username='second_testuser', email='second_test@mail.com')
+
+
+def create_test_business_userprofile(self):
+    self.userprofile = UserProfile.objects.create(
+        user=self.user,
+        type='business',
+        username='testuser',
+        email='test@mail.com'
+    )
+
+
+def create_test_customer_userprofile(self):
+    self.userprofile = UserProfile.objects.create(
+        user=self.user,
+        type='customer',
+        username='testuser',
+        email='test@mail.com'
+    )
+
+
+def create_test_offer(self):
+    self.offer = Offer.objects.create(
+        user_id=self.user.id,
+        title="Grafikdesign-Paket",
+        image="",
+        description="Ein umfassendes Grafikdesign-Paket für Unternehmen.",
+        min_price=100,
+        max_delivery_time=7
+    )
+
+
+def create_test_offerdetails(self):
+    self.offerdetails = OfferDetails.objects.create(
+        offer_id=self.offer.id,
+        title="Basic Design",
+        revisions=2,
+        delivery_time_in_days=5,
+        price=100,
+        features=["Logo Design", "Visitenkarte"],
+        offer_type="basic"
+    )
+
+    self.offerdetails = OfferDetails.objects.create(
+        offer_id=self.offer.id,
+        title="Standard Design",
+        revisions=5,
+        delivery_time_in_days=7,
+        price=200,
+        features=["Logo Design", "Visitenkarte", "Briefpapier"],
+        offer_type="standard"
+    )
+
+    self.offerdetails = OfferDetails.objects.create(
+        offer_id=self.offer.id,
+        title="Premium Design",
+        revisions=10,
+        delivery_time_in_days=10,
+        price=500,
+        features=["Logo Design", "Visitenkarte", "Briefpapier", "Flyer"],
+        offer_type="premium"
+    )
+
+
+def create_test_order(self):
+    self.order = Order.objects.create(
+        customer_user=self.user,
+        business_user=self.second_user,
+        title="Logo Design",
+        revisions=3,
+        delivery_time_in_days=5,
+        price=150,
+        features=[
+            "Logo Design",
+            "Visitenkarten"
+        ],
+        offer_type="basic",
+        status="in_progress"
+    )

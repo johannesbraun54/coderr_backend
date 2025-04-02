@@ -4,6 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
+
+
 def validate_offer_details(details, saved_offer_id, request):
     for detail in details:
         detail['offer'] = saved_offer_id
@@ -32,7 +34,7 @@ def get_detail_keyfacts(request):
 def create_new_order(request):
     offer_detail_id = request.data['offer_detail_id']
     print(offer_detail_id)
-    new_order = OfferDetails.objects.all()[offer_detail_id]
+    new_order = OfferDetails.objects.get(id=offer_detail_id)
     request.data['customer_user'] = request.user.id
     request.data['business_user'] = new_order.offer.user.id
     request.data['title'] = new_order.title
@@ -43,3 +45,8 @@ def create_new_order(request):
     request.data['offer_type'] = new_order.offer_type
     request.data['status'] = "in_progress"
     return request
+
+
+
+
+
