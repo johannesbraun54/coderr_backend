@@ -9,7 +9,7 @@ from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
 from .functions import validate_offer_details, get_detail_keyfacts, create_new_order
 from .paginations import LargeResultsSetPagination
-from .permissions import IsOwnerPermission, IsBusinessUserPermission, ReviewPermission, ReviewPatchPermission
+from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, IsStaffPermission
 
 
 ################################################ IMAGEUPLOAD_VIEWS ################################################
@@ -141,7 +141,7 @@ class ReviewsListView(GenericAPIView, ListModelMixin):
     ordering_fields = ['updated_at', 'rating']
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [ReviewPermission]
+    permission_classes = [IsCustomerPermission]
 
     def get(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
@@ -180,18 +180,43 @@ class ReviewsDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, De
 
 class OrdersView(GenericAPIView, ListModelMixin):
 
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
+    permission_classes = [IsCustomerPermission]
 
     def get(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+        user_type = getattr(request.user.userprofile, 'type', None)
+        if user_type == 'customer':
+            orders = Order.objects.filter(customer_user=request.user)
+        elif user_type == 'business':
+            orders = Order.objects.filter(business_user=request.user)
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
 
     def post(self, request):
+        obj = request.data
+        self.check_object_permissions(self.request, obj)
         create_new_order(request)
-        print(request.data)
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not create_new_order(request):
+            return Response({'error': 'OfferDetail not found'}, status=status.HTTP_404_NOT_FOUND)
+        else :
+            serializer = OrderSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+class OrdersDetailView(GenericAPIView, UpdateModelMixin, DestroyModelMixin):
+    queryset = Order.objects.all()
+    serializer_class = OrderSerializer
+    permission_classes = [IsBusinessUserPermission | IsStaffPermission]
+
+    def patch(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+
+    def delete(self, request, *args, **kwargs):
+        return super().destroy(request, *args, **kwargs)

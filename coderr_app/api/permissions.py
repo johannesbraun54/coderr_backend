@@ -16,11 +16,15 @@ class IsOwnerPermission(permissions.BasePermission):
 class IsBusinessUserPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
-        if request.method in ['POST']:
-            is_business_user = bool(
-                request.user.userprofile.type == "business")
+        if request.method in ['POST', 'PATCH']:
+            is_business_user = bool(request.user.userprofile.type == "business")
             return is_business_user
 
+class IsStaffPermission(permissions.BasePermission):
+    
+    def has_permission(self, request, view):
+        if request.user.is_staff:
+            return True
 
 class ReviewPatchPermission(permissions.BasePermission):
 
@@ -34,7 +38,7 @@ class ReviewPatchPermission(permissions.BasePermission):
             return is_owner
 
 
-class ReviewPermission(permissions.BasePermission):
+class IsCustomerPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         if request.user.is_authenticated:
@@ -46,3 +50,4 @@ class ReviewPermission(permissions.BasePermission):
         elif request.method in ['POST']:
             is_customer_user = bool(request.user.userprofile.type == "customer")
             return is_customer_user
+        
