@@ -17,14 +17,17 @@ class IsBusinessUserPermission(permissions.BasePermission):
 
     def has_object_permission(self, request, view, obj):
         if request.method in ['POST', 'PATCH']:
-            is_business_user = bool(request.user.userprofile.type == "business")
+            is_business_user = bool(
+                request.user.userprofile.type == "business")
             return is_business_user
 
+
 class IsStaffPermission(permissions.BasePermission):
-    
+
     def has_permission(self, request, view):
         if request.user.is_staff:
             return True
+
 
 class ReviewPatchPermission(permissions.BasePermission):
 
@@ -33,7 +36,7 @@ class ReviewPatchPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        elif is_customer_user and request.method in ['UPDATE','PATCH', 'DELETE']:
+        elif is_customer_user and request.method in ['UPDATE', 'PATCH', 'DELETE']:
             is_owner = bool(request.user == obj.reviewer)
             return is_owner
 
@@ -48,6 +51,18 @@ class IsCustomerPermission(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
         elif request.method in ['POST']:
-            is_customer_user = bool(request.user.userprofile.type == "customer")
+            is_customer_user = bool(
+                request.user.userprofile.type == "customer")
             return is_customer_user
+
+
+class EditOrderPermission(permissions.BasePermission):
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in ['PATCH']:
+            is_business_user = bool(request.user.userprofile.type == "business")
+            return is_business_user
         
+        elif request.method in ['DELETE']:
+            is_staff = bool(request.user.is_staff)
+            return is_staff

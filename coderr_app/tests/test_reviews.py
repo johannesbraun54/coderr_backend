@@ -10,14 +10,11 @@ from coderr_app.api.serializers import OffersSerializer
 class TestReviews(APITestCase):
 
     def setUp(self):
-        self.customer_user = User.objects.create_user(username="customeruser",
-                                                      email="customertest@mail.com")
+        self.customer_user = User.objects.create_user(username="customeruser", email="customertest@mail.com")
         self.client = APIClient()
         self.token = Token.objects.create(user=self.customer_user)
         self.client.credentials(HTTP_AUTHORIZATION="Token " + self.token.key)
-
-        self.business_user = User.objects.create_user(username="businessuser",
-                                                      email="businessuser@mail.com")
+        self.business_user = User.objects.create_user(username="businessuser", email="businessuser@mail.com")
         UserProfile.objects.create(
             user=self.customer_user,
             type='customer',

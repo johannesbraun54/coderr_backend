@@ -9,7 +9,7 @@ from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
 from .functions import validate_offer_details, get_detail_keyfacts, create_new_order
 from .paginations import LargeResultsSetPagination
-from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, IsStaffPermission
+from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 
 
 ################################################ IMAGEUPLOAD_VIEWS ################################################
@@ -197,7 +197,7 @@ class OrdersView(GenericAPIView, ListModelMixin):
         create_new_order(request)
         if not create_new_order(request):
             return Response({'error': 'OfferDetail not found'}, status=status.HTTP_404_NOT_FOUND)
-        else :
+        else:
             serializer = OrderSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -206,17 +206,63 @@ class OrdersView(GenericAPIView, ListModelMixin):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class OrdersDetailView(GenericAPIView, UpdateModelMixin, DestroyModelMixin):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
-    permission_classes = [IsBusinessUserPermission | IsStaffPermission]
+    permission_classes = [EditOrderPermission]
 
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
+
+
+class OrderInProgressCountView(GenericAPIView):
+
+    def get(self, request, pk):
+        order_count = Order.objects.filter(
+            business_user_id=pk, status="in_progress")
+        data = {"order_count": len(order_count)}
+        return Response(data)
+
+
+class OrderCompleteCountView(GenericAPIView):
+
+    def get(self, request, pk):
+        order_count = Order.objects.filter(
+            business_user_id=pk, status="completed")
+        data = {"completed_order_count": len(order_count)}
+        return Response(data)
+
+
+def get_rating_average(reviews_count):
+    ratings = []
+    reviews = Review.objects.all()
+    rating_sum = 0
+    for i in range(reviews_count):
+        review = reviews[i]
+        rating = review.rating
+        ratings.append(rating)
+    for rating in ratings:
+        rating_sum += rating
+        review_rating_average = round(rating_sum / len(ratings), 1)
+    return review_rating_average
+
+
+class BaseInfoView(GenericAPIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        offer_count = len(Offer.objects.all())
+        business_profile_count = len(
+            UserProfile.objects.filter(type="business"))
+        reviews_count = len(Review.objects.all())
+        base_info_data = {
+            "review_count": reviews_count,
+            "average_rating": get_rating_average(reviews_count),
+            "business_profile_count": business_profile_count,
+            "offer_count": offer_count
+        }
+        return Response(base_info_data)

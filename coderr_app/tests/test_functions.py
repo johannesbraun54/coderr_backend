@@ -1,20 +1,32 @@
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient, APITestCase
-from coderr_app.models import Offer, OfferDetails, UserProfile, Order
+from coderr_app.models import Offer, OfferDetails, UserProfile, Order, Review
 
 
 def create_and_login_test_user(self):
     self.user = User.objects.create_user(
-        username='testuser', email='test@mail.com')
+        username='testuser', email='test@mail.com', is_staff=True) 
     self.token = Token.objects.create(user=self.user)
     self.client = APIClient()
     self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
+def create_test_customer_userprofile(self):
+    self.userprofile = UserProfile.objects.create(
+        user=self.user,
+        type='customer',
+        username='testuser',
+        email='test@mail.com'
+    )
 
-def create_and_login_SECOND_test_user(self):
+def create_SECOND_test_user(self):
     self.second_user = User.objects.create_user(
         username='second_testuser', email='second_test@mail.com')
+    
+def login_second_test_user(self):
+    self.token = Token.objects.create(user=self.second_user)
+    self.client = APIClient()
+    self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token.key)
 
 
 def create_test_business_userprofile(self):
@@ -25,15 +37,11 @@ def create_test_business_userprofile(self):
         email='test@mail.com'
     )
 
-
-def create_test_customer_userprofile(self):
-    self.userprofile = UserProfile.objects.create(
-        user=self.user,
-        type='customer',
-        username='testuser',
-        email='test@mail.com'
-    )
-
+def create_test_review(self):
+    self.review = Review.objects.create(business_user= self.second_user,
+    reviewer = self.user,
+    rating= 4,
+    description= "Alles war toll!")
 
 def create_test_offer(self):
     self.offer = Offer.objects.create(
