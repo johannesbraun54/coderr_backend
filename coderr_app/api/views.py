@@ -76,10 +76,9 @@ class OffersView(GenericAPIView, ListModelMixin):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
-    filter_backends = [DjangoFilterBackend,
-                       filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     permission_classes = [IsBusinessUserPermission]
-    filterset_fields = ['user', 'min_price', 'max_delivery_time']
+    filterset_fields = ['min_price']
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
     ordering = ['updated_at']
@@ -87,6 +86,19 @@ class OffersView(GenericAPIView, ListModelMixin):
 
     def get(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
+    
+    def get_queryset(self):
+        queryset = Offer.objects.all()
+
+        creator_id = self.request.query_params.get('creator_id')
+        if creator_id:
+            queryset = queryset.filter(user=creator_id)
+
+        max_delivery_time_param = self.request.query_params.get('max_delivery_time')
+        if max_delivery_time_param:
+            queryset = queryset.filter(min_delivery_time=max_delivery_time_param)
+        return queryset
+
 
     def post(self, request):
         obj = request.data

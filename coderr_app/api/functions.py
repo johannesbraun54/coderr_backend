@@ -26,7 +26,7 @@ def get_detail_keyfacts(request):
         prices.append(detail['price'])
         delivery_times.append(detail['delivery_time_in_days'])
         request.data['min_price'] = min(prices)
-        request.data['max_delivery_time'] = max(delivery_times)
+        request.data['min_delivery_time'] = max(delivery_times)
 
     return request
 

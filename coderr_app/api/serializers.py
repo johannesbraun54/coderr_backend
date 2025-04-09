@@ -52,10 +52,11 @@ class OfferDetailsSerializer(serializers.ModelSerializer):
 
 class OffersSerializer(serializers.ModelSerializer):
 
+
     class Meta:
         model = Offer
         fields = '__all__'
-
+        
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all())
 
