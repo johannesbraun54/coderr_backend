@@ -73,21 +73,16 @@ Follow these steps to set up the project locally:
 
 4. **Apply Migrations**
     ```bash
-    Kopieren
-    Bearbeiten
     python manage.py migrate
 
 5. **Create a Superuser (Optional)**
     ```bash
-    Kopieren
-    Bearbeiten
     python manage.py createsuperuser
 
 6. **Run the Development Server**
     
     ```bash
-    Kopieren
-    Bearbeiten
     python manage.py runserver
-    The backend should now be running at:
-    http://127.0.0.1:8000/
+
+The backend should now be running at:
+http://127.0.0.1:8000/
