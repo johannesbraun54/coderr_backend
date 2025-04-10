@@ -34,8 +34,8 @@ class RegistrationView(APIView):
             data = {
                 'token': token.key,
                 'username': saved_account.username,
-                'user_id': saved_account.id,
-                'is_superuser': True
+                'email': saved_account.email,
+                'user_id': saved_account.id
             }
             return Response(data, status=status.HTTP_201_CREATED)
         else:

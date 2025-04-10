@@ -50,7 +50,7 @@ def create_test_offer(self):
         image="",
         description="Ein umfassendes Grafikdesign-Paket für Unternehmen.",
         min_price=100,
-        max_delivery_time=7
+        min_delivery_time=7
     )
 
 

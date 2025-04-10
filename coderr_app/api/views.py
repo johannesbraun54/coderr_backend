@@ -55,7 +55,6 @@ class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
 class ProfileBusinessListView(GenericAPIView, ListModelMixin):
     queryset = UserProfile.objects.filter(type='business')
     serializer_class = UserProfileSerializer
-    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -64,7 +63,6 @@ class ProfileBusinessListView(GenericAPIView, ListModelMixin):
 class ProfileCustomerListView(GenericAPIView, ListModelMixin):
     queryset = UserProfile.objects.filter(type='customer')
     serializer_class = UserProfileSerializer
-    permission_classes = [AllowAny]
 
     def get(self, request, *args, **kwargs):
         return self.list(request, *args, **kwargs)
@@ -106,12 +104,13 @@ class OffersView(GenericAPIView, ListModelMixin):
         request.data['user'] = request.user.id
         get_detail_keyfacts(request)
         details = request.data['details']
-        serializer = OffersSerializer(
-            data=request.data, context={'request': request})
+        serializer = OffersSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             saved_offer = serializer.save()
             validate_offer_details(details, saved_offer.id, request)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            offer = serializer.data
+            offer['details'] = validate_offer_details(details, saved_offer.id, request)
+            return Response(offer, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
