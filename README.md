@@ -13,13 +13,6 @@ A Django backend for a JavaScript-based freelancer platform. This repository pro
 - [Features](#features)
 - [Technologies](#technologies)
 - [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Folder Structure](#folder-structure)
-- [Contributing](#contributing)
-- [License](#license)
-- [Contact](#contact)
-
 ---
 
 ## About
