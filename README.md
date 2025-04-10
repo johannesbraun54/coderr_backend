@@ -1,6 +1,3 @@
-# coderr_backend
-a django backend for a freelancer developer platform 
-
 # Coderr Backend
 
 A Django backend for a JavaScript-based freelancer platform. This repository provides the server-side application, handling authentication, project management, and other API endpoints to support a dynamic freelancer marketplace.
