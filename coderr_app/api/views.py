@@ -7,7 +7,7 @@ from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
-from .functions import validate_offer_details, get_detail_keyfacts, create_new_order
+from .functions import validate_offer_details, set_detail_keyfacts, create_new_order, patch_details
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 
@@ -102,12 +102,11 @@ class OffersView(GenericAPIView, ListModelMixin):
         obj = request.data
         self.check_object_permissions(self.request, obj)
         request.data['user'] = request.user.id
-        get_detail_keyfacts(request)
+        set_detail_keyfacts(request)
         details = request.data['details']
         serializer = OffersSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
-            saved_offer = serializer.save()
-            validate_offer_details(details, saved_offer.id, request)
+            saved_offer = serializer.save() 
             offer = serializer.data
             offer['details'] = validate_offer_details(details, saved_offer.id, request)
             return Response(offer, status=status.HTTP_201_CREATED)
@@ -115,7 +114,7 @@ class OffersView(GenericAPIView, ListModelMixin):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin, DestroyModelMixin):
+class SingleOfferView(GenericAPIView, RetrieveModelMixin, DestroyModelMixin):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
@@ -124,14 +123,22 @@ class SingleOfferView(GenericAPIView, UpdateModelMixin, RetrieveModelMixin, Dest
     def get(self, request, *args, **kwargs):
         return super().retrieve(request, *args, **kwargs)
 
-    def patch(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
+    def patch(self, request, pk, format=None):
+        offer = Offer.objects.get(pk=pk)
+        patch_details(request, pk)
+        serializer = OffersSerializer(offer, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save()
+            patched_offer = serializer.data
+            return Response(patched_offer, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
 
 
-class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
+class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin, UpdateModelMixin):
 
     queryset = OfferDetails.objects.all()
     serializer_class = OfferDetailsSerializer
@@ -141,6 +148,12 @@ class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin):
 
     def post(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
+    
+    def update(self, request, *args, **kwargs):
+        return super().update(request, *args, **kwargs)
+    
+    def patch(self, request, *args, **kwargs):
+        return super().partial_update(request, *args, **kwargs)
 
 
 ################################################ REVIEW_VIEWS ################################################

@@ -4,13 +4,12 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-
-
 def validate_offer_details(details, saved_offer_id, request):
-    validated_details = [] 
+    validated_details = []
     for detail in details:
         detail['offer'] = saved_offer_id
-        details_serializer = OfferDetailsSerializer(data=detail, context={'request': request})
+        details_serializer = OfferDetailsSerializer(
+            data=detail, context={'request': request})
         if details_serializer.is_valid():
             details_serializer.save()
             validated_details.append(details_serializer.data)
@@ -19,16 +18,30 @@ def validate_offer_details(details, saved_offer_id, request):
     return validated_details
 
 
-def get_detail_keyfacts(request):
+def set_detail_keyfacts(request):
     details = request.data['details']
     prices = []
     delivery_times = []
     for detail in details:
-        prices.append(detail['price'])
+        prices.append(float(detail['price']))
         delivery_times.append(detail['delivery_time_in_days'])
-        request.data['min_price'] = min(prices)
-        request.data['min_delivery_time'] = max(delivery_times)
 
+    request.data['min_price'] = str(min(prices))
+    request.data['min_delivery_time'] = min(delivery_times)
+    return request
+
+
+def patch_details(request, pk):
+    set_detail_keyfacts(request)
+    old_offer_details = OfferDetails.objects.filter(offer_id=pk)
+    for i in range(3):
+        old_detail = old_offer_details[i]
+        patched_detail = request.data['details'][i]
+        detail_serializer = OfferDetailsSerializer(old_detail, data=patched_detail, partial=True)
+        if detail_serializer.is_valid():
+            detail_serializer.save()
+        else:
+            return Response(detail_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     return request
 
 
@@ -49,6 +62,3 @@ def create_new_order(request):
         return request
     else:
         return False
-
-
-
