@@ -7,7 +7,7 @@ from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
-from .functions import validate_offer_details, set_detail_keyfacts, create_new_order, patch_details
+from .functions import validate_and_post_offer_details, set_detail_keyfacts, create_new_order, patch_details,get_offer_details
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 
@@ -108,7 +108,7 @@ class OffersView(GenericAPIView, ListModelMixin):
         if serializer.is_valid():
             saved_offer = serializer.save() 
             offer = serializer.data
-            offer['details'] = validate_offer_details(details, saved_offer.id, request)
+            offer['details'] = validate_and_post_offer_details(details, saved_offer.id, request)
             return Response(offer, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -126,13 +126,16 @@ class SingleOfferView(GenericAPIView, RetrieveModelMixin, DestroyModelMixin):
     def patch(self, request, pk, format=None):
         offer = Offer.objects.get(pk=pk)
         patch_details(request, pk)
+        patched_details = request.data['details']
         serializer = OffersSerializer(offer, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             patched_offer = serializer.data
+            patched_offer['details'] = get_offer_details(pk, request)
             return Response(patched_offer, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # richtiges format vom response
 
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
