@@ -7,7 +7,7 @@ from rest_framework import filters, status
 from django_filters.rest_framework import DjangoFilterBackend
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
-from .functions import validate_and_post_offer_details, set_detail_keyfacts, create_new_order, patch_details,get_offer_details
+from .functions import validate_and_post_offer_details, set_detail_keyfacts, create_new_order, patch_details, get_offer_details
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 
@@ -74,7 +74,8 @@ class OffersView(GenericAPIView, ListModelMixin):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
     permission_classes = [IsBusinessUserPermission]
     filterset_fields = ['min_price']
     search_fields = ['title', 'description']
@@ -84,7 +85,7 @@ class OffersView(GenericAPIView, ListModelMixin):
 
     def get(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
-    
+
     def get_queryset(self):
         queryset = Offer.objects.all()
 
@@ -92,11 +93,12 @@ class OffersView(GenericAPIView, ListModelMixin):
         if creator_id:
             queryset = queryset.filter(user=creator_id)
 
-        max_delivery_time_param = self.request.query_params.get('max_delivery_time')
+        max_delivery_time_param = self.request.query_params.get(
+            'max_delivery_time')
         if max_delivery_time_param:
-            queryset = queryset.filter(min_delivery_time=max_delivery_time_param)
+            queryset = queryset.filter(
+                min_delivery_time=max_delivery_time_param)
         return queryset
-
 
     def post(self, request):
         obj = request.data
@@ -104,11 +106,13 @@ class OffersView(GenericAPIView, ListModelMixin):
         request.data['user'] = request.user.id
         set_detail_keyfacts(request)
         details = request.data['details']
-        serializer = OffersSerializer(data=request.data, context={'request': request})
+        serializer = OffersSerializer(
+            data=request.data, context={'request': request})
         if serializer.is_valid():
-            saved_offer = serializer.save() 
+            saved_offer = serializer.save()
             offer = serializer.data
-            offer['details'] = validate_and_post_offer_details(details, saved_offer.id, request)
+            offer['details'] = validate_and_post_offer_details(
+                details, saved_offer.id, request)
             return Response(offer, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -127,7 +131,8 @@ class SingleOfferView(GenericAPIView, RetrieveModelMixin, DestroyModelMixin):
         offer = Offer.objects.get(pk=pk)
         patch_details(request, pk)
         patched_details = request.data['details']
-        serializer = OffersSerializer(offer, data=request.data, partial=True, context={'request': request})
+        serializer = OffersSerializer(
+            offer, data=request.data, partial=True, context={'request': request})
         if serializer.is_valid():
             serializer.save()
             patched_offer = serializer.data
@@ -151,10 +156,10 @@ class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin, Upda
 
     def post(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
-    
+
     def update(self, request, *args, **kwargs):
         return super().update(request, *args, **kwargs)
-    
+
     def patch(self, request, *args, **kwargs):
         return super().partial_update(request, *args, **kwargs)
 
@@ -221,16 +226,16 @@ class OrdersView(GenericAPIView, ListModelMixin):
     def post(self, request):
         obj = request.data
         self.check_object_permissions(self.request, obj)
-        create_new_order(request)
-        if not create_new_order(request):
-            return Response({'error': 'OfferDetail not found'}, status=status.HTTP_404_NOT_FOUND)
+        try:
+            create_new_order(request)
+        except OfferDetails.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = OrderSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
-            serializer = OrderSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrdersDetailView(GenericAPIView, UpdateModelMixin, DestroyModelMixin):
