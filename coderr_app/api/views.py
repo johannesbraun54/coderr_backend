@@ -113,13 +113,11 @@ class OffersView(GenericAPIView, ListModelMixin):
         request.data['user'] = request.user.id
         set_detail_keyfacts(request)
         details = request.data['details']
-        serializer = OffersSerializer(
-            data=request.data, context={'request': request})
+        serializer = OffersSerializer(data=request.data, context={'request': request})
         if serializer.is_valid():
             saved_offer = serializer.save()
             offer = serializer.data
-            offer['details'] = validate_and_post_offer_details(
-                details, saved_offer.id, request)
+            offer['details'] = validate_and_post_offer_details(details, saved_offer.id, request)
             return Response(offer, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

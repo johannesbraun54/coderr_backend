@@ -59,9 +59,12 @@ class OffersSerializer(serializers.ModelSerializer):
         
     user = serializers.PrimaryKeyRelatedField(
         queryset=User.objects.all())
-
+    
     details = OfferDetailsSerializer(
         many=True, read_only=True, fields=('id', 'url'))
+    
+    # details_ids = serializers.PrimaryKeyRelatedField(queryset=OfferDetails.objects.all(), many=True, write_only=True, source="details")
+
 
 
 class ReviewSerializer(serializers.ModelSerializer):

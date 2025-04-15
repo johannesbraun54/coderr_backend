@@ -5,17 +5,33 @@ from rest_framework import status
 
 
 def validate_and_post_offer_details(details, saved_offer_id, request):
-    validated_details = []
-    for detail in details:
-        detail['offer'] = saved_offer_id
-        details_serializer = OfferDetailsSerializer(
-            data=detail, context={'request': request})
+    incldues_three_details = bool(len(details) == 3)
+    if incldues_three_details and validated_correct_offer_types(details):
+        set_offer_id_at_offerdetails(details, saved_offer_id)
+        details_serializer = OfferDetailsSerializer(data=details, many=True, context={'request': request})
         if details_serializer.is_valid():
             details_serializer.save()
-            validated_details.append(details_serializer.data)
+            return details_serializer.data
         else:
             return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    return validated_details
+    else:
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+def set_offer_id_at_offerdetails(details, saved_offer_id):
+    for detail in details:
+        detail['offer'] = saved_offer_id
+    return details
+
+
+def validated_correct_offer_types(details):
+    right_offertypes = ('basic', 'standard', 'premium')
+    current_offertypes = []
+    for detail in details:
+        current_offertypes.append(detail['offer_type'])
+    current_offertypes = tuple(current_offertypes)
+    includes_correct_offertypes = bool(right_offertypes == current_offertypes)
+    return includes_correct_offertypes
 
 
 def set_detail_keyfacts(request):

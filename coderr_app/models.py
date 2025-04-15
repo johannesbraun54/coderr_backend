@@ -31,6 +31,11 @@ class Offer(models.Model):
 
 
 class OfferDetails(models.Model):
+
+    TYPE_CHOICES = [('basic', 'Basic'),
+                    ('standard', 'Standard'),
+                     ('premium', 'Premium')]
+        
     offer = models.ForeignKey(
         Offer, on_delete=models.CASCADE, related_name='details')
     title = models.CharField(max_length=255)
@@ -38,7 +43,7 @@ class OfferDetails(models.Model):
     delivery_time_in_days = models.IntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     features = models.JSONField()
-    offer_type = models.CharField(max_length=255)
+    offer_type = models.CharField(max_length=255, choices=TYPE_CHOICES)
 
 class Review(models.Model):
     business_user= models.ForeignKey(User, on_delete=models.CASCADE)
