@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
 from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin, CreateModelMixin, DestroyModelMixin
@@ -83,12 +84,14 @@ class OffersView(GenericAPIView, ListModelMixin):
     ordering = ['updated_at']
     pagination_class = LargeResultsSetPagination
 
-    def get(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
+    def get(self, request, *args, **kwargs):    
+        offers = Offer.objects.all()
+        serializer = OffersSerializer(offers, many=True)
+        return Response(serializer.data)
 
     def get_queryset(self):
-        queryset = Offer.objects.all()
 
+        queryset = Offer.objects.all()
         creator_id = self.request.query_params.get('creator_id')
         if creator_id:
             queryset = queryset.filter(user=creator_id)
@@ -96,9 +99,13 @@ class OffersView(GenericAPIView, ListModelMixin):
         max_delivery_time_param = self.request.query_params.get(
             'max_delivery_time')
         if max_delivery_time_param:
-            queryset = queryset.filter(
-                min_delivery_time=max_delivery_time_param)
+            try:
+                max_delivery_time = int(max_delivery_time_param)
+            except ValueError:
+                raise ValidationError({"max_delivery_time": "Must be an integer."})
+            queryset = queryset.filter(min_delivery_time__lte=max_delivery_time)
         return queryset
+    
 
     def post(self, request):
         obj = request.data
