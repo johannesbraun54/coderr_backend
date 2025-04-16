@@ -4,52 +4,26 @@ from rest_framework.response import Response
 from rest_framework import status
 
 
-def validate_and_post_offer_details(details, saved_offer_id, request):
-    incldues_three_details = bool(len(details) == 3)
-    if incldues_three_details and validated_correct_offer_types(details):
-        set_offer_id_at_offerdetails(details, saved_offer_id)
-        details_serializer = OfferDetailsSerializer(data=details, many=True, context={'request': request})
-        if details_serializer.is_valid():
-            details_serializer.save()
-            return details_serializer.data
-        else:
-            return Response(details_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
-
-
-def set_offer_id_at_offerdetails(details, saved_offer_id):
-    for detail in details:
-        detail['offer'] = saved_offer_id
-    return details
-
-
-def validated_correct_offer_types(details):
-    right_offertypes = ('basic', 'standard', 'premium')
-    current_offertypes = []
-    for detail in details:
-        current_offertypes.append(detail['offer_type'])
-    current_offertypes = tuple(current_offertypes)
-    includes_correct_offertypes = bool(right_offertypes == current_offertypes)
-    return includes_correct_offertypes
-
-
-def set_detail_keyfacts(request):
+def set_offer_min_delivery_time(request):
     details = request.data['details']
-    prices = []
     delivery_times = []
     for detail in details:
-        prices.append(float(detail['price']))
         delivery_times.append(detail['delivery_time_in_days'])
+    min_delivery_time = min(delivery_times)
+    return min_delivery_time
 
-    request.data['min_price'] = str(min(prices))
-    request.data['min_delivery_time'] = min(delivery_times)
-    return request
+def set_offer_min_price(request):
+    details = request.data['details']
+    prices = []
+    for detail in details:
+        price = float(detail['price'])
+        prices.append(price)
+        min_price = min(prices)
+    return min_price
 
 
 def patch_details(request, pk):
     validated_details = []
-    set_detail_keyfacts(request)  # am anfang oder am ende?
     old_offer_details = OfferDetails.objects.filter(offer_id=pk)
     new_offer_details = request.data['details']
     for i in range(len(new_offer_details)):

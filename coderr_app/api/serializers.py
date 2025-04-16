@@ -45,26 +45,45 @@ class OfferDetailsSerializer(serializers.ModelSerializer):
         model = OfferDetails
         fields = ['id', 'url', 'offer', 'title', 'revisions',
                   'delivery_time_in_days', 'price', 'features', 'offer_type']
+        read_only_fields = ['offer']
 
-    offer = serializers.PrimaryKeyRelatedField(
-        queryset=Offer.objects.all())
+
+
 
 
 class OffersSerializer(serializers.ModelSerializer):
 
-
+    details = OfferDetailsSerializer(many=True)
     class Meta:
         model = Offer
-        fields = '__all__'
-        
-    user = serializers.PrimaryKeyRelatedField(
-        queryset=User.objects.all())
-    
-    details = OfferDetailsSerializer(
-        many=True, read_only=True, fields=('id', 'url'))
-    
-    # details_ids = serializers.PrimaryKeyRelatedField(queryset=OfferDetails.objects.all(), many=True, write_only=True, source="details")
+        fields = ['id', 'user', 'title', 'image', 'description', 'created_at', 'updated_at', 'min_price', 'min_delivery_time', 'details']
+        read_only_fields = ['user', 'created_at', 'updated_at', 'min_price', 'min_delivery_time']
 
+    # def validate_details(self, value):
+    #     if len(value) == 3:
+    #         return value
+    #     else:
+    #         raise serializers.ValidationError({'error' : 'offer includes less then 3 details'}) 
+
+    def create(self, validated_data):
+        details = validated_data.pop('details')
+        offer = Offer.objects.create(**validated_data)
+        for detail in details:
+            OfferDetails.objects.create(offer=offer, **detail)
+        return offer
+    
+    def update(self, instance, validated_data):
+        details_data = validated_data.pop('details', [])
+        details = instance.details
+
+        instance.title = validated_data.get('title', instance.title)
+        instance.image = validated_data.get('image', instance.image)
+        instance.description = validated_data.get('description', instance.description)
+
+        for detail in details:
+            detail = OfferDetails.objects.get(offer_id=instance.id, offer_type=detail['offer_type'])
+            OfferDetails.objects.update(**detail)
+        return instance
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -94,5 +113,3 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-
-    
