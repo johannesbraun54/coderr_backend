@@ -8,7 +8,7 @@ from rest_framework import filters, status, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
-from .functions import create_new_order, patch_details, get_offer_details, set_offer_min_price, set_offer_min_delivery_time
+from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 
@@ -105,7 +105,7 @@ class OffersView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user,
-                        min_price=set_offer_min_price(self.request), 
+                        min_price=set_offer_min_price(self.request.data['details']), 
                         min_delivery_time=set_offer_min_delivery_time(self.request))
 
 
@@ -114,13 +114,6 @@ class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
     permission_classes = [IsOwnerPermission]
-
-    # def patch(self, request, pk, format=None):
-    #     patch_details(request, pk)
-    #     patched_offer['details'] = get_offer_details(pk, request)
-
-    def perform_update(self, serializer):
-        serializer.save(min_delivery_time=set_offer_min_delivery_time(self.request))
 
 
 class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin, UpdateModelMixin):
@@ -143,7 +136,7 @@ class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin, Upda
 
 ################################################ REVIEW_VIEWS ################################################
 
-class ReviewsListView(GenericAPIView, ListModelMixin):
+class ReviewsListView(generics.ListCreateAPIView):
 
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['business_user_id', 'reviewer_id']
@@ -152,37 +145,16 @@ class ReviewsListView(GenericAPIView, ListModelMixin):
     serializer_class = ReviewSerializer
     permission_classes = [IsCustomerPermission]
 
-    def get(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    def post(self, request):
-        obj = request.data
-        request.data['reviewer'] = request.user.id
-        self.check_object_permissions(self.request, obj)
-        serializer = ReviewSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            print("serializer.errors", serializer.errors)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def perform_create(self, serializer):
+        serializer.save(reviewer=self.request.user)
 
 
-class ReviewsDetailView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin):
+class ReviewsDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
     permission_classes = [ReviewPatchPermission]
     lookup_field = "pk"
-
-    def get(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    def delete(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
 
 
 ################################################ ORDER_VIEWS ################################################
