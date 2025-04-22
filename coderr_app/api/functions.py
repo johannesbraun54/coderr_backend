@@ -1,5 +1,4 @@
-from coderr_app.models import UserProfile, Offer, OfferDetails
-# from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer
+from coderr_app.models import UserProfile, Offer, OfferDetails, Review
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -23,26 +22,43 @@ def set_offer_min_price(details):
         min_price = min(prices)
     return min_price
 
+def get_rating_average(reviews_count):
+    ratings = []
+    reviews = Review.objects.all()
+    rating_sum = 0
+    for i in range(reviews_count):
+        review = reviews[i]
+        rating = review.rating
+        ratings.append(rating)
+    for rating in ratings:
+        rating_sum += rating
+        review_rating_average = round(rating_sum / len(ratings), 1)
+    return review_rating_average
+
 
 
 
 def create_new_order(request):
-    try:
-        offer_detail_id = request.data['offer_detail_id']
-        new_order = OfferDetails.objects.get(id=offer_detail_id)
-        offer = Offer.objects.get(pk=new_order.offer_id)
-        new_order = OfferDetails.objects.get(id=offer_detail_id)
-        request.data['customer_user'] = request.user.id
-        request.data['business_user'] = new_order.offer.user.id
-        request.data['title'] = offer.title
-        request.data['revisions'] = new_order.revisions
-        request.data['delivery_time_in_days'] = new_order.delivery_time_in_days
-        request.data['price'] = new_order.price
-        request.data['features'] = new_order.features
-        request.data['offer_type'] = new_order.offer_type
-        request.data['status'] = "in_progress"
-        return request
-    except KeyError:
-        return Response(status=status.HTTP_400_BAD_REQUEST)
+    order = {}
+    offer_detail_id = request.data.get('offer_detail_id', None)
+    if offer_detail_id != None:
+        try:
+            offer_detail = OfferDetails.objects.get(id=offer_detail_id)
+            offer = Offer.objects.get(pk=offer_detail.offer_id)
+            order['offer_detail'] = offer_detail_id
+            order['customer_user'] = request.user.id
+            order['business_user'] = offer_detail.offer.user.id
+            order['title'] = offer.title
+            order['revisions'] = offer_detail.revisions
+            order['delivery_time_in_days'] = offer_detail.delivery_time_in_days
+            order['price'] = offer_detail.price
+            order['features'] = offer_detail.features
+            order['offer_type'] = offer_detail.offer_type
+            order['status'] = "in_progress"
+         
+        except OfferDetails.DoesNotExist:
+             order = {"error":f"pk {offer_detail_id} is not found"}
+    return order
+
     
 

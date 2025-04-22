@@ -8,7 +8,7 @@ from rest_framework import filters, status, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
 from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
-from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time
+from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time, get_rating_average
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 
@@ -172,30 +172,13 @@ class OrdersView(generics.ListCreateAPIView):
             queryset = Order.objects.filter(business_user=self.request.user)
         return queryset
 
-    
-    # def get(self, request, *args, **kwargs):
-    #     user_type = getattr(request.user.userprofile, 'type', None)
-    #     if user_type == 'customer':
-    #         orders = Order.objects.filter(customer_user=request.user)
-    #     elif user_type == 'business':
-    #         orders = Order.objects.filter(business_user=request.user)
-    #     serializer = OrderSerializer(orders, many=True)
-    #     return Response(serializer.data)
-
-    # def post(self, request):
-    #     # obj = request.data
-    #     # self.check_object_permissions(self.request, obj)
-    #     try:
-    #         create_new_order(request)
-    #     except OfferDetails.DoesNotExist:
-    #         return Response(status=status.HTTP_404_NOT_FOUND)
-    #     serializer = OrderSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+    def post(self, request):
+        serializer = OrderSerializer(data=create_new_order(request))
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -203,15 +186,11 @@ class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = OrderSerializer
     permission_classes = [EditOrderPermission]
 
-    def delete(self, request, *args, **kwargs):
-        return super().destroy(request, *args, **kwargs)
-
 
 class OrderInProgressCountView(GenericAPIView):
 
     def get(self, request, pk):
-        order_count = Order.objects.filter(
-            business_user_id=pk, status="in_progress")
+        order_count = Order.objects.filter(business_user_id=pk, status="in_progress")
         data = {"order_count": len(order_count)}
         return Response(data)
 
@@ -219,24 +198,12 @@ class OrderInProgressCountView(GenericAPIView):
 class OrderCompleteCountView(GenericAPIView):
 
     def get(self, request, pk):
-        order_count = Order.objects.filter(
-            business_user_id=pk, status="completed")
+        order_count = Order.objects.filter(business_user_id=pk, status="completed")
         data = {"completed_order_count": len(order_count)}
         return Response(data)
 
 
-def get_rating_average(reviews_count):
-    ratings = []
-    reviews = Review.objects.all()
-    rating_sum = 0
-    for i in range(reviews_count):
-        review = reviews[i]
-        rating = review.rating
-        ratings.append(rating)
-    for rating in ratings:
-        rating_sum += rating
-        review_rating_average = round(rating_sum / len(ratings), 1)
-    return review_rating_average
+
 
 
 class BaseInfoView(GenericAPIView):

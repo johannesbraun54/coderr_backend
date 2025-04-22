@@ -139,8 +139,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     def _validate_patch_fields(self, request):
         if request.method == 'PATCH':
             request_contains_reviewer = request.data.get('reviewer', None)
-            request_contains_business_user = request.data.get(
-                'business_user', None)
+            request_contains_business_user = request.data.get('business_user', None)
             if request_contains_reviewer or request_contains_business_user:
                 raise serializers.ValidationError(
                     {'error': 'you can only patch rating and description'})
@@ -158,34 +157,16 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    offer_detail_id= serializers.PrimaryKeyRelatedField(queryset=OfferDetails.objects.all(), source='offer_detail',write_only=True)
-
+    offer_detail= serializers.PrimaryKeyRelatedField(queryset=OfferDetails.objects.all(),write_only=True)
 
     class Meta:
         model = Order
-        exclude = ['offer_detail']
-        read_only_fields = ['title', 'revisions', 'delivery_time_in_days',
-                            'price', 'features', 'offer_type', 'status', 'customer_user', 'business_user']
+        fields = ['id','title', 'revisions', 'delivery_time_in_days','price', 'features', 'offer_type', 'status', 'customer_user', 'business_user','created_at','updated_at', 'offer_detail']
 
     def validate(self, attrs):
-        request = self.context.get('request')
-        print("request.data",request.data)
-        if request.method == 'POST':
-            offer_detail_id = self.initial_data.get('offer_detail_id')
-            offer_detail = OfferDetails.objects.get(id=offer_detail_id)
-            order = {
-                "offer_detail_id": offer_detail_id,
-                "customer_user": request.user,
-                "business_user": offer_detail.offer.user,
-                "title": offer_detail.title,
-                "revisions": offer_detail.revisions,
-                "delivery_time_in_days": offer_detail.delivery_time_in_days,
-                "price": offer_detail.price,
-                "features": offer_detail.features,
-                "offer_type": offer_detail.offer_type,
-                "status": "in_progress"
-            }
-            attrs = order
-        else:
-           attrs =  request.data
+        request = self.context.get('request', None)
+        if request != None and request.method == 'PATCH':
+            status = getattr(request.data, 'status', None)
+            if len(attrs) != 1 and status == None:
+                raise serializers.ValidationError("You can only update field 'status'")
         return super().validate(attrs)
