@@ -159,41 +159,49 @@ class ReviewsDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 ################################################ ORDER_VIEWS ################################################
 
-class OrdersView(GenericAPIView, ListModelMixin):
+class OrdersView(generics.ListCreateAPIView):
 
+    serializer_class = OrderSerializer
     permission_classes = [IsCustomerPermission]
 
-    def get(self, request, *args, **kwargs):
-        user_type = getattr(request.user.userprofile, 'type', None)
+    def get_queryset(self):
+        user_type = getattr(self.request.user.userprofile, 'type', None)
         if user_type == 'customer':
-            orders = Order.objects.filter(customer_user=request.user)
+            queryset = Order.objects.filter(customer_user=self.request.user)
         elif user_type == 'business':
-            orders = Order.objects.filter(business_user=request.user)
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+            queryset = Order.objects.filter(business_user=self.request.user)
+        return queryset
 
-    def post(self, request):
-        obj = request.data
-        self.check_object_permissions(self.request, obj)
-        try:
-            create_new_order(request)
-        except OfferDetails.DoesNotExist:
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        serializer = OrderSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # def get(self, request, *args, **kwargs):
+    #     user_type = getattr(request.user.userprofile, 'type', None)
+    #     if user_type == 'customer':
+    #         orders = Order.objects.filter(customer_user=request.user)
+    #     elif user_type == 'business':
+    #         orders = Order.objects.filter(business_user=request.user)
+    #     serializer = OrderSerializer(orders, many=True)
+    #     return Response(serializer.data)
+
+    # def post(self, request):
+    #     # obj = request.data
+    #     # self.check_object_permissions(self.request, obj)
+    #     try:
+    #         create_new_order(request)
+    #     except OfferDetails.DoesNotExist:
+    #         return Response(status=status.HTTP_404_NOT_FOUND)
+    #     serializer = OrderSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 
 
-class OrdersDetailView(GenericAPIView, UpdateModelMixin, DestroyModelMixin):
+class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [EditOrderPermission]
-
-    def patch(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
         return super().destroy(request, *args, **kwargs)
