@@ -24,13 +24,13 @@ class RegistrationView(APIView):
 
     def post(self, request):
         p_type = request.data.pop('type', None)
-        if p_type != None:
+        if p_type in ['customer','business']:
             serializer = RegistrationSerializer(data=request.data)
             data = {}
             if serializer.is_valid():
                 saved_account = serializer.save()
-                token, created = Token.objects.get_or_create(user=saved_account)
                 set_user_profile({'user': saved_account.id, 'type': p_type, 'username': saved_account.username,'email': saved_account.email})
+                token, created = Token.objects.get_or_create(user=saved_account)
                 data = {
                     'token': token.key,
                     'username': saved_account.username,
@@ -42,7 +42,7 @@ class RegistrationView(APIView):
                 data = serializer.errors
                 return Response(data, status=status.HTTP_400_BAD_REQUEST)
         else:
-            data = {}
+            data = {'error': 'field type is required and should be included in UserProfile.TYPE_CHOICES'}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 

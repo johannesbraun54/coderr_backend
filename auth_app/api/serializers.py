@@ -7,21 +7,14 @@ from coderr_app.api.serializers import UserProfileSerializer
 def check_email_existence(mail_adress):
     if User.objects.filter(email=mail_adress).exists():
         raise serializers.ValidationError({
-            "email": ["Diese E-Mail-Adresse wird bereits verwendet."]
+            "email": ["Email already exits."]
         })
 
 
 def check_password_match(pw, repeated_pw):
     if pw != repeated_pw:
         raise serializers.ValidationError({
-            "password": ["Die Passwörter stimmen nicht überein."]
-        })
-
-
-def check_username_existence(new_username):
-    if User.objects.filter(username=new_username).exists():
-        raise serializers.ValidationError({
-            "username": ["Dieser Username wird bereits verwendet."]
+            "password": ["Passwords don't matching."]
         })
 
 
@@ -39,15 +32,19 @@ class RegistrationSerializer(serializers.ModelSerializer):
 
             'password': {
                 'write_only': True
+            },
+
+            'email': {
+                'required': True
             }
         }
+
 
     def save(self):
         pw = self.validated_data.get('password')
         repeated_pw = self.validated_data.get('repeated_password')
         check_password_match(pw, repeated_pw)
-        # check_username_existence(self.validated_data.get('username'))
-        check_email_existence(self.validated_data.get('email'))
+        check_email_existence(self.validated_data.get('email', None))
 
         account = User(username=self.validated_data['username'],
                        email=self.validated_data['email'])
