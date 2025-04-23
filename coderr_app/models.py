@@ -3,8 +3,11 @@ from django.contrib.auth.models import User
 
 
 class UserProfile(models.Model):
+
+    TYPE_CHOICES = [('customer', 'customer'), ('business', 'business')]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    type = models.CharField(max_length=10)
+    type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     username = models.CharField(max_length=64)
     email = models.EmailField()
     first_name = models.CharField(

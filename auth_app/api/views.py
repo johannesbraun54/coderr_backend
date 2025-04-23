@@ -23,23 +23,26 @@ class RegistrationView(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        p_type = request.data.pop('type')
-        serializer = RegistrationSerializer(data=request.data)
-
-        data = {}
-        if serializer.is_valid():
-            saved_account = serializer.save()
-            token, created = Token.objects.get_or_create(user=saved_account)
-            set_user_profile({'user': saved_account.id, 'type': p_type, 'username': saved_account.username,'email': saved_account.email})
-            data = {
-                'token': token.key,
-                'username': saved_account.username,
-                'email': saved_account.email,
-                'user_id': saved_account.id
-            }
-            return Response(data, status=status.HTTP_201_CREATED)
+        p_type = request.data.pop('type', None)
+        if p_type != None:
+            serializer = RegistrationSerializer(data=request.data)
+            data = {}
+            if serializer.is_valid():
+                saved_account = serializer.save()
+                token, created = Token.objects.get_or_create(user=saved_account)
+                set_user_profile({'user': saved_account.id, 'type': p_type, 'username': saved_account.username,'email': saved_account.email})
+                data = {
+                    'token': token.key,
+                    'username': saved_account.username,
+                    'email': saved_account.email,
+                    'user_id': saved_account.id
+                }
+                return Response(data, status=status.HTTP_201_CREATED)
+            else:
+                data = serializer.errors
+                return Response(data, status=status.HTTP_400_BAD_REQUEST)
         else:
-            data = serializer.errors
+            data = {}
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
 
 

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from coderr_app.api.serializers import UserProfileSerializer
+
 
 
 def check_email_existence(mail_adress):
@@ -30,7 +32,6 @@ class UserprofileTypeSerializer(serializers.Serializer):
 class RegistrationSerializer(serializers.ModelSerializer):
 
     repeated_password = serializers.CharField(write_only=True)
-
     class Meta:
         model = User
         fields = ['username', 'email', 'password', 'repeated_password']
@@ -44,7 +45,6 @@ class RegistrationSerializer(serializers.ModelSerializer):
     def save(self):
         pw = self.validated_data.get('password')
         repeated_pw = self.validated_data.get('repeated_password')
-
         check_password_match(pw, repeated_pw)
         # check_username_existence(self.validated_data.get('username'))
         check_email_existence(self.validated_data.get('email'))
