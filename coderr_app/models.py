@@ -72,7 +72,7 @@ class Order(models.Model):
     customer_user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='orders')
     business_user = models.ForeignKey(
-        User, on_delete=models.CASCADE)
+        User, on_delete=models.CASCADE, related_name='received_orders')
     title = models.CharField(max_length=255)
     revisions = models.IntegerField()
     delivery_time_in_days = models.IntegerField()

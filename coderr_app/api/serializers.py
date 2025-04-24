@@ -170,3 +170,24 @@ class OrderSerializer(serializers.ModelSerializer):
             if len(attrs) != 1 and status == None:
                 raise serializers.ValidationError("You can only update field 'status'")
         return super().validate(attrs)
+
+
+class OrderCountSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = User
+        fields = ['order_count']
+    
+    order_count = serializers.SerializerMethodField()
+    
+    def get_order_count(self, obj):
+        return obj.received_orders.filter(status='in_progress').count()
+    
+class CompletedOrderCountSerializer(OrderCountSerializer):
+
+    class Meta:
+        model = User
+        fields = ['order_count']
+    
+    def get_order_count(self, obj):
+        return obj.received_orders.filter(status='completed').count()

@@ -39,12 +39,18 @@ class RegistrationSerializer(serializers.ModelSerializer):
             }
         }
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email already exits.")
+        return value
+
+
 
     def save(self):
         pw = self.validated_data.get('password')
         repeated_pw = self.validated_data.get('repeated_password')
         check_password_match(pw, repeated_pw)
-        check_email_existence(self.validated_data.get('email', None))
+        # check_email_existence(self.validated_data.get('email', None))
 
         account = User(username=self.validated_data['username'],
                        email=self.validated_data['email'])

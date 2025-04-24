@@ -6,8 +6,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import filters, status, generics
 from django_filters.rest_framework import DjangoFilterBackend
-from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order
-from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer
+from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order, User
+from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer
 from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time, get_rating_average
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
@@ -53,20 +53,14 @@ class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
         return super().update(request, *args, **kwargs)
 
 
-class ProfileBusinessListView(GenericAPIView, ListModelMixin):
+class ProfileBusinessListView(generics.ListAPIView):
     queryset = UserProfile.objects.filter(type='business')
     serializer_class = UserProfileSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
-
-class ProfileCustomerListView(GenericAPIView, ListModelMixin):
+class ProfileCustomerListView(generics.ListAPIView):
     queryset = UserProfile.objects.filter(type='customer')
     serializer_class = UserProfileSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
 
 ################################################ OFFER_VIEWS ################################################
 
@@ -187,21 +181,20 @@ class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [EditOrderPermission]
 
 
-class OrderInProgressCountView(GenericAPIView):
+class OrderInProgressCountView(generics.RetrieveAPIView):
 
-    def get(self, request, pk):
-        order_count = Order.objects.filter(business_user_id=pk, status="in_progress")
-        data = {"order_count": len(order_count)}
-        return Response(data)
+    queryset = User.objects.all()
+    serializer_class = OrderCountSerializer
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk', None)
+        queryset = User.objects.filter(userprofile__type='business', pk=pk)
+        return queryset
 
 
-class OrderCompleteCountView(GenericAPIView):
+class OrderCompleteCountView(OrderInProgressCountView):
 
-    def get(self, request, pk):
-        order_count = Order.objects.filter(business_user_id=pk, status="completed")
-        data = {"completed_order_count": len(order_count)}
-        return Response(data)
-
+    serializer_class = CompletedOrderCountSerializer
 
 
 
