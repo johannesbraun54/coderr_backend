@@ -1,22 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
-from .serializers import RegistrationSerializer, UserprofileTypeSerializer
+from .serializers import RegistrationSerializer
 from rest_framework.response import Response
-from coderr_app.models import UserProfile
 from rest_framework import status
 from rest_framework.authtoken.views import ObtainAuthToken
-from coderr_app.api.serializers import UserProfileSerializer
-
-
-def set_user_profile(profile_data):
-    serializer = UserProfileSerializer(data=profile_data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    else:
-        print("profile_serializer.errors",serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+from .functions import set_user_profile
 
 
 class RegistrationView(APIView):

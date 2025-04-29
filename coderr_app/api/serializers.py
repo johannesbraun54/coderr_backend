@@ -60,6 +60,22 @@ class OffersSerializer(serializers.ModelSerializer):
         read_only_fields = ['min_price', 'min_delivery_time']
         write_only_fields = ['user']
 
+    # def to_representation(self, instance):
+    #     rep = super().to_representation(instance)
+    #     details = rep['details'][0]
+    #     for i in range(3):
+    #         rep['details'][i] = {'id': details['id'], 'url':details['url']}
+    #     # print(ret['details'])
+    #     return rep
+    
+    # def get_fields(self):
+    #     fields = super().get_fields()
+    #     fields['details'] = OfferDetailsSerializer(many=True, fields=('url', 'id'))
+    #     request = self.context.get('request')
+    #     if request.method == 'GET':
+    #         print("fields",fields)
+    #     return fields
+
     def _validate_details_length(self, details):
         if len(details) != 3:
             raise serializers.ValidationError(

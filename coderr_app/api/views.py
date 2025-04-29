@@ -1,8 +1,8 @@
-from django.forms import ValidationError
 from rest_framework.views import APIView
 from rest_framework.generics import GenericAPIView
-from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin, ListModelMixin, CreateModelMixin, DestroyModelMixin
-from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework import viewsets
+from rest_framework.mixins import RetrieveModelMixin, UpdateModelMixin
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import filters, status, generics
 from django_filters.rest_framework import DjangoFilterBackend
@@ -37,27 +37,15 @@ class OfferImageUploadView(APIView):
 
 ################################################ PROFILE_VIEWS ################################################
 
-
-class ProfileView(GenericAPIView, RetrieveModelMixin, UpdateModelMixin):
+class ProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsOwnerPermission]
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     lookup_field = 'user'
 
-    def get(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-
 class ProfileBusinessListView(generics.ListAPIView):
     queryset = UserProfile.objects.filter(type='business')
     serializer_class = UserProfileSerializer
-
 
 class ProfileCustomerListView(generics.ListAPIView):
     queryset = UserProfile.objects.filter(type='customer')
@@ -65,8 +53,7 @@ class ProfileCustomerListView(generics.ListAPIView):
 
 ################################################ OFFER_VIEWS ################################################
 
-class OffersView(generics.ListCreateAPIView):
-
+class OffersViewSet(viewsets.ModelViewSet):
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
@@ -83,29 +70,11 @@ class OffersView(generics.ListCreateAPIView):
                         min_delivery_time=set_offer_min_delivery_time(self.request))
 
 
-class SingleOfferView(generics.RetrieveUpdateDestroyAPIView):
 
-    queryset = Offer.objects.all()
-    serializer_class = OffersSerializer
-    permission_classes = [IsOwnerPermission]
-
-
-class OfferDetailView(GenericAPIView, RetrieveModelMixin, CreateModelMixin, UpdateModelMixin):
+class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     queryset = OfferDetails.objects.all()
     serializer_class = OfferDetailsSerializer
-
-    def get(self, request, *args, **kwargs):
-        return super().retrieve(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        return super().create(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        return super().update(request, *args, **kwargs)
-
-    def patch(self, request, *args, **kwargs):
-        return super().partial_update(request, *args, **kwargs)
 
 
 ################################################ REVIEW_VIEWS ################################################

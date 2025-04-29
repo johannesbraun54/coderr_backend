@@ -10,11 +10,9 @@ class IsOwnerPermission(permissions.BasePermission):
             return True
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return True
-        elif request.method in ['PUT', 'PATCH', 'DELETE']:
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
             is_owner = bool(request.user == obj.user)
-            return is_owner
+        return is_owner
 
 
 class IsBusinessUserPermission(permissions.BasePermission):
@@ -22,10 +20,16 @@ class IsBusinessUserPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
             return True
-        elif request.method in ['POST', 'PATCH']:
+        elif request.method in ['POST']:
             authenticated_business_user = bool(request.user.is_authenticated and request.user.userprofile.type == "business")
-            if authenticated_business_user:
-                return True
+            return authenticated_business_user
+        return True
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in ['PUT', 'PATCH', 'DELETE']:
+            is_owner = bool(request.user == obj.user)
+            return is_owner
+        return request.user.is_authenticated
 
 
 class IsStaffPermission(permissions.BasePermission):
