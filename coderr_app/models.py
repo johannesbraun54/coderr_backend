@@ -33,7 +33,7 @@ class Offer(models.Model):
     description = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True, null=True)
-    min_price = models.DecimalField(max_digits=10, decimal_places=2)
+    min_price = models.FloatField()
     min_delivery_time = models.IntegerField()
 
 
@@ -48,7 +48,7 @@ class OfferDetails(models.Model):
     title = models.CharField(max_length=255)
     revisions = models.IntegerField()
     delivery_time_in_days = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.FloatField()
     features = models.JSONField()
     offer_type = models.CharField(max_length=255, choices=TYPE_CHOICES)
 

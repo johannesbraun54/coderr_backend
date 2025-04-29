@@ -20,7 +20,7 @@ def set_offer_min_price(details):
             price = float(detail.price)
         prices.append(price)
         min_price = min(prices)
-    return min_price
+    return float(min_price) 
 
 def get_rating_average(reviews_count):
     ratings = []

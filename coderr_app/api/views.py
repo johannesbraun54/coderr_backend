@@ -11,6 +11,7 @@ from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSer
 from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time, get_rating_average
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
+from .filters import OfferFilter
 
 
 ################################################ IMAGEUPLOAD_VIEWS ################################################
@@ -64,38 +65,17 @@ class ProfileCustomerListView(generics.ListAPIView):
 
 ################################################ OFFER_VIEWS ################################################
 
-
 class OffersView(generics.ListCreateAPIView):
 
     queryset = Offer.objects.all()
     serializer_class = OffersSerializer
-    filter_backends = [DjangoFilterBackend,
-                       filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     permission_classes = [IsBusinessUserPermission]
-    filterset_fields = ['min_price']
+    filterset_class = OfferFilter
     search_fields = ['title', 'description']
     ordering_fields = ['updated_at', 'min_price']
     ordering = ['updated_at']
     pagination_class = LargeResultsSetPagination
-
-    def get_queryset(self):
-
-        queryset = Offer.objects.all()
-        creator_id = self.request.query_params.get('creator_id')
-        if creator_id:
-            queryset = queryset.filter(user=creator_id)
-
-        max_delivery_time_param = self.request.query_params.get(
-            'max_delivery_time')
-        if max_delivery_time_param:
-            try:
-                max_delivery_time = int(max_delivery_time_param)
-            except ValueError:
-                raise ValidationError(
-                    {"max_delivery_time": "Must be an integer."})
-            queryset = queryset.filter(
-                min_delivery_time__lte=max_delivery_time)
-        return queryset
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user,

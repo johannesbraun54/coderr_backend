@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'coderr_app',
     'auth_app',
-    'django_filters'
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -158,6 +158,6 @@ REST_FRAMEWORK = {
 
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend'
-    ]
+    ], 
 
 }
