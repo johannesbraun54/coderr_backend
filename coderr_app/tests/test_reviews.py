@@ -21,7 +21,14 @@ class TestReviews(APITestCase):
             username='customeruser',
             email='customertest@mail.com'
         )
+        UserProfile.objects.create(
+            user=self.business_user,
+            type='business',
+            username='businessuser',
+            email='businessuser@mail.com'
+        )
 
+        
     def test_get_reviews(self):
         url = reverse('reviews-list')
         response = self.client.get(url)

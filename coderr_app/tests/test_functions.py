@@ -50,7 +50,10 @@ def create_test_offer(self):
         image="",
         description="Ein umfassendes Grafikdesign-Paket für Unternehmen.",
         min_price=100,
-        min_delivery_time=7
+        min_delivery_time=7,
+        user_details = {'first_name': "Kevin", 
+                        'last_name': "Kramer" , 
+                        'username': "kevin" }
     )
 
 
@@ -62,7 +65,7 @@ def create_test_offerdetails(self):
         delivery_time_in_days=5,
         price=100,
         features=["Logo Design", "Visitenkarte"],
-        offer_type="basic"
+        offer_type="basic",
     )
 
     self.offerdetails = OfferDetails.objects.create(
@@ -88,6 +91,7 @@ def create_test_offerdetails(self):
 
 def create_test_order(self):
     self.order = Order.objects.create(
+        offer_detail = OfferDetails.objects.get(id=1),
         customer_user=self.user,
         business_user=self.second_user,
         title="Logo Design",

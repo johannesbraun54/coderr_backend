@@ -7,8 +7,8 @@ from rest_framework.response import Response
 from rest_framework import filters, status, generics
 from django_filters.rest_framework import DjangoFilterBackend
 from coderr_app.models import UserProfile, Offer, OfferDetails, Review, Order, User
-from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer
-from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time, get_rating_average
+from .serializers import UserProfileSerializer, OffersSerializer, ImageUploadSerializer, OfferDetailsSerializer, OfferImageUploadSerializer, ReviewSerializer, OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer, OfferListSerializer, OfferRetrieveSerializer
+from .functions import create_new_order, set_offer_min_price, set_offer_min_delivery_time, set_user_details, get_rating_average
 from .paginations import LargeResultsSetPagination
 from .permissions import IsOwnerPermission, IsBusinessUserPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
 from .filters import OfferFilter
@@ -67,7 +67,18 @@ class OffersViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user,
                         min_price=set_offer_min_price(self.request.data['details']), 
-                        min_delivery_time=set_offer_min_delivery_time(self.request))
+                        min_delivery_time=set_offer_min_delivery_time(self.request),
+                        user_details=set_user_details(self.request.user))
+        
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            if self.kwargs == {}:
+                return OfferListSerializer
+            else:
+                return OfferRetrieveSerializer
+        return OffersSerializer
+
+
 
 
 
@@ -116,12 +127,25 @@ class OrdersView(generics.ListCreateAPIView):
         return queryset
 
     def post(self, request):
-        serializer = OrderSerializer(data=create_new_order(request))
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            offer_detail_id = request.data.get('offer_detail_id', None)
+            offer_detail = OfferDetails.objects.get(id=offer_detail_id)
+            if offer_detail:
+                serializer = OrderSerializer(data=create_new_order(request))
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except OfferDetails.DoesNotExist:
+            error = {'error': 'Offerdetail with the specified Id not found'}
+            return Response(error, status=status.HTTP_404_NOT_FOUND)
+        except ValueError:
+            error = {'error': 'offer_detail_id must be a number'}
+            return Response(error, status=status.HTTP_400_BAD_REQUEST)
+
+
+
 
 
 class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):

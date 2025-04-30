@@ -12,7 +12,8 @@ class IsOwnerPermission(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in ['PUT', 'PATCH', 'DELETE']:
             is_owner = bool(request.user == obj.user)
-        return is_owner
+            return is_owner
+        return request.user.is_authenticated
 
 
 class IsBusinessUserPermission(permissions.BasePermission):

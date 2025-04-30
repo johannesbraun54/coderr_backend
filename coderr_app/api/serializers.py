@@ -23,7 +23,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = '__all__'
+        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'location', 'tel', 'description', 'working_hours', 'type', 'email', 'created_at']
 
 
 class OfferDetailsSerializer(serializers.ModelSerializer):
@@ -44,7 +44,7 @@ class OfferDetailsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OfferDetails
-        fields = ['id', 'url', 'offer', 'title', 'revisions',
+        fields = ['id', 'url', 'title', 'revisions',
                   'delivery_time_in_days', 'price', 'features', 'offer_type']
         read_only_fields = ['offer']
 
@@ -55,26 +55,9 @@ class OffersSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Offer
-        fields = ['id', 'title', 'image', 'description', 'created_at',
-                  'updated_at', 'min_price', 'min_delivery_time', 'details']
+        fields = ['id', 'title', 'image', 'description', 'details']
         read_only_fields = ['min_price', 'min_delivery_time']
         write_only_fields = ['user']
-
-    # def to_representation(self, instance):
-    #     rep = super().to_representation(instance)
-    #     details = rep['details'][0]
-    #     for i in range(3):
-    #         rep['details'][i] = {'id': details['id'], 'url':details['url']}
-    #     # print(ret['details'])
-    #     return rep
-    
-    # def get_fields(self):
-    #     fields = super().get_fields()
-    #     fields['details'] = OfferDetailsSerializer(many=True, fields=('url', 'id'))
-    #     request = self.context.get('request')
-    #     if request.method == 'GET':
-    #         print("fields",fields)
-    #     return fields
 
     def _validate_details_length(self, details):
         if len(details) != 3:
@@ -87,12 +70,21 @@ class OffersSerializer(serializers.ModelSerializer):
         if received_types != expected_types:
             raise serializers.ValidationError(
                 {'error': 'each offer must contain the following offertypes once : basic, standard, premium'})
+        
+    def _check_offer_types_at_patch(self, details):
+        for detail in details:
+            offer_type = detail.get('offer_type', None)
+            if offer_type == None:
+                raise serializers.ValidationError({'error': 'for patching the accordingly detail, field offer_type is required'})
+            
 
     def validate_details(self, value):
         request = self.context.get('request')
         if request.method == 'POST':
             self._validate_details_length(value)
             self._get_current_offer_types(value)
+        elif request.method == 'PATCH':
+            self._check_offer_types_at_patch(value)
         return value
 
     def create(self, validated_data):
@@ -104,7 +96,7 @@ class OffersSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         request = self.context.get("request")
-        details_data = validated_data.pop('details')
+        details_data = validated_data.pop('details', None)
         details = instance.details.all()
 
         instance.title = validated_data.get('title', instance.title)
@@ -112,22 +104,39 @@ class OffersSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get(
             'description', instance.description)
 
-        for detail_data in details_data:
-            offer_type = detail_data['offer_type']
-            detail = details.get(offer_type=offer_type)
-            detail.title = detail_data.get('title', detail.title)
-            detail.revisions = detail_data.get('revisions', detail.revisions)
-            detail.delivery_time_in_days = detail_data.get(
-                'delivery_time_in_days', detail.delivery_time_in_days)
-            detail.price = detail_data.get('price', detail.price)
-            detail.features = detail_data.get('features', detail.features)
-            detail.save()
+        if details_data != None:
+            for detail_data in details_data:
+                offer_type = detail_data.get('offer_type', None)
+                detail = details.get(offer_type=offer_type)
+                detail.title = detail_data.get('title', detail.title)
+                detail.revisions = detail_data.get('revisions', detail.revisions)
+                detail.delivery_time_in_days = detail_data.get(
+                    'delivery_time_in_days', detail.delivery_time_in_days)
+                detail.price = detail_data.get('price', detail.price)
+                detail.features = detail_data.get('features', detail.features)
+                detail.save()
 
-        instance.min_price = set_offer_min_price(instance.details.all())
-        instance.min_delivery_time = set_offer_min_delivery_time(request)
+            instance.min_price = set_offer_min_price(instance.details.all())
+            instance.min_delivery_time = set_offer_min_delivery_time(request)
         instance.save()
 
         return instance
+    
+class OfferRetrieveSerializer(OffersSerializer):
+    details = OfferDetailsSerializer(many=True, fields=('id', 'url'))
+
+    class Meta:
+        model = Offer
+        fields = ['id', 'user', 'title', 'image', 'description', 'created_at',
+                  'updated_at', 'details', 'min_price', 'min_delivery_time']
+        
+    
+class OfferListSerializer(OfferRetrieveSerializer):
+
+    class Meta:
+        model = Offer
+        fields = ['id', 'user', 'title', 'image', 'description', 'created_at',
+                  'updated_at', 'details', 'min_price', 'min_delivery_time', 'user_details']
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -146,8 +155,7 @@ class ReviewSerializer(serializers.ModelSerializer):
                 {'error': 'already rated this user'})
 
     def _validate_user_type(self):
-        business_user = User.objects.get(
-            pk=self.initial_data.get('business_user'))
+        business_user = User.objects.get(pk=self.initial_data.get('business_user'))
         if business_user.userprofile.type == "customer":
             raise serializers.ValidationError(
                 {'error': 'you can only rate business users'})
@@ -177,7 +185,7 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Order
-        fields = ['id','title', 'revisions', 'delivery_time_in_days','price', 'features', 'offer_type', 'status', 'customer_user', 'business_user','created_at','updated_at', 'offer_detail']
+        fields = ['id', 'customer_user', 'business_user', 'title', 'revisions', 'delivery_time_in_days', 'price', 'features', 'offer_type', 'status', 'created_at', 'updated_at', 'offer_detail']
 
     def validate(self, attrs):
         request = self.context.get('request', None)
@@ -199,11 +207,14 @@ class OrderCountSerializer(serializers.ModelSerializer):
     def get_order_count(self, obj):
         return obj.received_orders.filter(status='in_progress').count()
     
-class CompletedOrderCountSerializer(OrderCountSerializer):
+class CompletedOrderCountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ['order_count']
+        fields = ['completed_order_count']
     
-    def get_order_count(self, obj):
+    completed_order_count = serializers.SerializerMethodField()
+
+    
+    def get_completed_order_count(self, obj):
         return obj.received_orders.filter(status='completed').count()

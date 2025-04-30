@@ -10,19 +10,13 @@ class UserProfile(models.Model):
     type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     username = models.CharField(max_length=64)
     email = models.EmailField()
-    first_name = models.CharField(
-        max_length=64, null=True, default="add information")
-    last_name = models.CharField(
-        max_length=64, null=True, default="add information")
-    file = models.ImageField(upload_to='uploads/',
-                             null=True, default="add information")
-    location = models.CharField(
-        max_length=64, null=True, default="add information")
+    first_name = models.CharField(max_length=64, null=True, default="add information")
+    last_name = models.CharField(max_length=64, null=True, default="add information")
+    file = models.ImageField(upload_to='uploads/',null=True, default="add information")
+    location = models.CharField(max_length=64, null=True, default="add information")
     tel = models.CharField(max_length=64, null=True, default="add information")
-    description = models.CharField(
-        max_length=256, null=True, default="add information")
-    working_hours = models.CharField(
-        max_length=24, null=True, default="add information")
+    description = models.CharField(max_length=256, null=True, default="add information")
+    working_hours = models.CharField(max_length=24, null=True, default="add information")
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
 
@@ -35,6 +29,8 @@ class Offer(models.Model):
     updated_at = models.DateTimeField(auto_now=True, null=True)
     min_price = models.FloatField()
     min_delivery_time = models.IntegerField()
+    user_details = models.JSONField()
+
 
 
 class OfferDetails(models.Model):
@@ -43,8 +39,7 @@ class OfferDetails(models.Model):
                     ('standard', 'Standard'),
                     ('premium', 'Premium')]
 
-    offer = models.ForeignKey(
-        Offer, on_delete=models.CASCADE, related_name='details')
+    offer = models.ForeignKey(Offer, on_delete=models.CASCADE, related_name='details')
     title = models.CharField(max_length=255)
     revisions = models.IntegerField()
     delivery_time_in_days = models.IntegerField()
@@ -56,8 +51,7 @@ class OfferDetails(models.Model):
 class Review(models.Model):
     RATING_CHOICES = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
     business_user = models.ForeignKey(User, on_delete=models.CASCADE)
-    reviewer = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='reviewer')
+    reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviewer')
     rating = models.IntegerField(choices=RATING_CHOICES)
     description = models.CharField(max_length=1024)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -66,13 +60,10 @@ class Review(models.Model):
 
 class Order(models.Model):
 
-    STATUS_CHOICES = [('in_progress', 'in_progress'),
-                      ('completed', 'completed'), ('cancelled', 'cancelled')]
+    STATUS_CHOICES = [('in_progress', 'in_progress'),('completed', 'completed'), ('cancelled', 'cancelled')]
     offer_detail = models.ForeignKey(OfferDetails, related_name='offer_detail', on_delete=models.CASCADE)
-    customer_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='orders')
-    business_user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='received_orders')
+    customer_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    business_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_orders')
     title = models.CharField(max_length=255)
     revisions = models.IntegerField()
     delivery_time_in_days = models.IntegerField()

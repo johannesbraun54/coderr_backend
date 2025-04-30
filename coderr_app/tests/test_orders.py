@@ -4,7 +4,7 @@ from coderr_app.models import Order, UserProfile
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from coderr_app.tests.test_functions import create_and_login_test_user, login_second_test_user, create_test_customer_userprofile, create_SECOND_test_user, create_test_order
+from coderr_app.tests.test_functions import create_and_login_test_user, login_second_test_user, create_test_customer_userprofile, create_SECOND_test_user, create_test_order, create_test_offer, create_test_offerdetails
 
 
 class TestOrders(APITestCase):
@@ -19,6 +19,8 @@ class TestOrders(APITestCase):
             username='businessuser',
             email='businessuser@mail.com'
         )
+        create_test_offer(self)
+        create_test_offerdetails(self)
         create_test_order(self)
 
     def test_get_orders(self):

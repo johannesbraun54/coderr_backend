@@ -20,7 +20,7 @@ class TestOffers(APITestCase):
 
 
     def test_offer_post(self):
-        url = reverse('offers-list')
+        url = reverse('offer-list')
         data = {
             "title": "Grafikdesign-Paket",
             "image": None,
@@ -68,7 +68,7 @@ class TestOffers(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_offer(self):
-        url = reverse('offers-list')
+        url = reverse('offer-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -79,17 +79,17 @@ class TestOffers(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_patch_offer(self):
-        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        url = reverse('offer-detail', kwargs={'pk': self.offer.id})
         patch_data = {'title': 'UpdatePatchTest'}
         response = self.client.patch(url, patch_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_delete_offer(self):
-        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        url = reverse('offer-detail', kwargs={'pk': self.offer.id})
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_get_offer_detail(self):
-        url = reverse('offers-detail', kwargs={'pk': self.offer.id})
+        url = reverse('offer-detail', kwargs={'pk': self.offer.id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
