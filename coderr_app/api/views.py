@@ -87,6 +87,14 @@ class OfferDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = OfferDetails.objects.all()
     serializer_class = OfferDetailsSerializer
 
+    def get_serializer(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        offer_detail =  OfferDetails.objects.get(pk=pk)
+        if self.request.method == 'GET':
+            serializer = OfferDetailsSerializer(offer_detail, fields=('id', 'title', 'revisions',
+                  'delivery_time_in_days', 'price', 'features', 'offer_type'))
+            return serializer
+
 
 ################################################ REVIEW_VIEWS ################################################
 
