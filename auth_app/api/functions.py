@@ -5,6 +5,7 @@ from review_app.models import Review
 
 
 def set_user_profile(profile_data):
+    print(profile_data)
     serializer = UserProfileSerializer(data=profile_data)
     if serializer.is_valid():
         serializer.save()

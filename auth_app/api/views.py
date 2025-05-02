@@ -24,7 +24,7 @@ class RegistrationView(APIView):
             data = {}
             if serializer.is_valid():
                 saved_account = serializer.save()
-                set_user_profile({'user': saved_account.id, 'type': p_type, 'username': saved_account.username,'email': saved_account.email})
+                set_user_profile({'user': saved_account.id, 'type': p_type, 'username': saved_account.username, 'email': saved_account.email})
                 token, created = Token.objects.get_or_create(user=saved_account)
                 data = {
                     'token': token.key,

@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient, APITestCase
+from rest_framework.test import APIClient
 from auth_app.models import UserProfile
 
 def create_and_login_test_user(self):

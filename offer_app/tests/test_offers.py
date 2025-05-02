@@ -1,10 +1,6 @@
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
-from offer_app.models import Offer, OfferDetails
+from rest_framework.test import APITestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from offer_app.api.serializers import OffersSerializer
 from auth_app.tests.test_functions import create_and_login_test_user , create_test_business_userprofile
 from offer_app.tests.test_functions import create_test_offer, create_test_offerdetails
 
@@ -17,9 +13,6 @@ class TestOffers(APITestCase):
         create_test_offer(self)
         create_test_offerdetails(self)
         
-
-
-
     def test_offer_post(self):
         url = reverse('offer-list')
         data = {
