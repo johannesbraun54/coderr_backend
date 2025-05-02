@@ -1,11 +1,17 @@
 from rest_framework.views import APIView
+from rest_framework.generics import GenericAPIView
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
-from .serializers import RegistrationSerializer
+from .serializers import RegistrationSerializer, UserProfileSerializer, ImageUploadSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.authtoken.views import ObtainAuthToken
-from .functions import set_user_profile
+from rest_framework import status, generics
+from auth_app.models import UserProfile
+from offer_app.models import Offer
+from review_app.models import Review
+from .functions import set_user_profile, get_rating_average
+from .permissions import IsOwnerPermission
 
 
 class RegistrationView(APIView):
@@ -56,3 +62,44 @@ class CustomLoginView(ObtainAuthToken):
         else:
             data = serializer.errors
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
+        
+class ImageUploadView(APIView):
+
+    def post(self, request, format=None):
+        serializer = ImageUploadSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class ProfileView(generics.RetrieveUpdateAPIView):
+    permission_classes = [IsOwnerPermission]
+    queryset = UserProfile.objects.all()
+    serializer_class = UserProfileSerializer
+    lookup_field = 'user'
+
+class ProfileBusinessListView(generics.ListAPIView):
+    queryset = UserProfile.objects.filter(type='business')
+    serializer_class = UserProfileSerializer
+
+class ProfileCustomerListView(generics.ListAPIView):
+    queryset = UserProfile.objects.filter(type='customer')
+    serializer_class = UserProfileSerializer
+
+class BaseInfoView(GenericAPIView):
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        offer_count = len(Offer.objects.all())
+        business_profile_count = len(
+            UserProfile.objects.filter(type="business"))
+        reviews_count = len(Review.objects.all())
+        base_info_data = {
+            "review_count": reviews_count,
+            "average_rating": get_rating_average(reviews_count),
+            "business_profile_count": business_profile_count,
+            "offer_count": offer_count
+        }
+        return Response(base_info_data)
+

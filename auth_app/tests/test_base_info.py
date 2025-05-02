@@ -1,9 +1,9 @@
-from django.contrib.auth.models import User
 from django.urls import reverse
-from rest_framework.authtoken.models import Token
-from rest_framework.test import APIClient, APITestCase
-from coderr_app.models import Offer, OfferDetails, UserProfile, Order, Review
-from coderr_app.tests.test_functions import create_and_login_test_user, create_test_offer, create_test_offerdetails, create_test_review, create_SECOND_test_user, create_test_customer_userprofile
+from rest_framework.test import APITestCase
+from auth_app.tests.test_functions import create_and_login_test_user, create_SECOND_test_user, create_test_customer_userprofile
+from offer_app.tests.test_functions import create_test_offer, create_test_offerdetails
+from auth_app.models import UserProfile
+from review_app.tests.test_functions import create_test_review
 
 
 class TestBaseInfo(APITestCase):

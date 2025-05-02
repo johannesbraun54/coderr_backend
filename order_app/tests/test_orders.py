@@ -1,11 +1,10 @@
 from rest_framework import status
-from rest_framework.test import APIClient, APITestCase
-from coderr_app.models import Order, UserProfile
+from rest_framework.test import APITestCase
 from django.urls import reverse
-from django.contrib.auth.models import User
-from rest_framework.authtoken.models import Token
-from coderr_app.tests.test_functions import create_and_login_test_user, login_second_test_user, create_test_customer_userprofile, create_SECOND_test_user, create_test_order, create_test_offer, create_test_offerdetails
-
+from auth_app.tests.test_functions import create_and_login_test_user, create_SECOND_test_user, create_test_customer_userprofile, login_second_test_user 
+from offer_app.tests.test_functions import create_test_offer, create_test_offerdetails
+from order_app.tests.test_functions import create_test_order
+from auth_app.models import UserProfile
 
 class TestOrders(APITestCase):
     def setUp(self):

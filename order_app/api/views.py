@@ -4,7 +4,8 @@ from order_app.models import Order, User
 from offer_app.models import OfferDetails
 from .serializers import OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer
 from .functions import create_new_order
-from .permissions import IsCustomerPermission, EditOrderPermission
+from .permissions import EditOrderPermission
+from review_app.api.permissions import IsCustomerPermission
 
 class OrdersView(generics.ListCreateAPIView):
 
@@ -37,8 +38,8 @@ class OrdersView(generics.ListCreateAPIView):
             error = {'error': 'offer_detail_id must be a number'}
             return Response(error, status=status.HTTP_400_BAD_REQUEST)
 
-
 class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):
+
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [EditOrderPermission]
@@ -53,7 +54,6 @@ class OrderInProgressCountView(generics.RetrieveAPIView):
         pk = self.kwargs.get('pk', None)
         queryset = User.objects.filter(userprofile__type='business', pk=pk)
         return queryset
-
 
 class OrderCompleteCountView(OrderInProgressCountView):
 

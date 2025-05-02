@@ -1,8 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from coderr_app.api.serializers import UserProfileSerializer
-
-
+from auth_app.models import UserProfile
 
 def check_email_existence(mail_adress):
     if User.objects.filter(email=mail_adress).exists():
@@ -10,17 +8,11 @@ def check_email_existence(mail_adress):
             "email": ["Email already exits."]
         })
 
-
 def check_password_match(pw, repeated_pw):
     if pw != repeated_pw:
         raise serializers.ValidationError({
             "password": ["Passwords don't matching."]
         })
-
-
-class UserprofileTypeSerializer(serializers.Serializer):
-    type = serializers.CharField(max_length=10)
-
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
@@ -44,16 +36,25 @@ class RegistrationSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Email already exits.")
         return value
 
-
-
     def save(self):
         pw = self.validated_data.get('password')
         repeated_pw = self.validated_data.get('repeated_password')
         check_password_match(pw, repeated_pw)
-        # check_email_existence(self.validated_data.get('email', None))
 
-        account = User(username=self.validated_data['username'],
-                       email=self.validated_data['email'])
+        account = User(username=self.validated_data['username'], email=self.validated_data['email'])
         account.set_password(pw)
         account.save()
         return account
+
+class ImageUploadSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserProfile
+        fields = ['file']
+
+class UserProfileSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = UserProfile
+        fields = ['user', 'username', 'first_name', 'last_name', 'file', 'location', 
+                  'tel', 'description', 'working_hours', 'type', 'email', 'created_at']

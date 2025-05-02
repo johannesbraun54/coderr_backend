@@ -1,10 +1,10 @@
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from coderr_app.models import Offer, OfferDetails, UserProfile, Review
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from coderr_app.api.serializers import OffersSerializer
+from auth_app.models import UserProfile
+from review_app.models import Review
 
 
 class TestReviews(APITestCase):

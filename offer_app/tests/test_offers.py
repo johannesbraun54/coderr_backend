@@ -1,11 +1,12 @@
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
-from coderr_app.models import Offer, OfferDetails, UserProfile
+from offer_app.models import Offer, OfferDetails
 from django.urls import reverse
 from django.contrib.auth.models import User
 from rest_framework.authtoken.models import Token
-from coderr_app.api.serializers import OffersSerializer
-from .test_functions import create_and_login_test_user ,create_test_offer, create_test_offerdetails, create_test_business_userprofile
+from offer_app.api.serializers import OffersSerializer
+from auth_app.tests.test_functions import create_and_login_test_user , create_test_business_userprofile
+from offer_app.tests.test_functions import create_test_offer, create_test_offerdetails
 
 
 class TestOffers(APITestCase):
