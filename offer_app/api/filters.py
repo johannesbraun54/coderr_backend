@@ -1,4 +1,4 @@
-from coderr_app.models import Offer
+from offer_app.models import Offer
 from django_filters import rest_framework as filters
 
 
