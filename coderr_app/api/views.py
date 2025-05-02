@@ -4,11 +4,11 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import filters, status, generics
 from django_filters.rest_framework import DjangoFilterBackend
-from coderr_app.models import UserProfile, Review, Order, User
-from offer_app.models import OfferDetails, Offer
-from .serializers import UserProfileSerializer, ImageUploadSerializer, ReviewSerializer, OrderSerializer, OrderCountSerializer, CompletedOrderCountSerializer
-from .functions import create_new_order, get_rating_average
-from .permissions import IsOwnerPermission, IsCustomerPermission, ReviewPatchPermission, EditOrderPermission
+from coderr_app.models import UserProfile, Review
+from offer_app.models import Offer
+from .serializers import UserProfileSerializer, ImageUploadSerializer, ReviewSerializer
+from .functions import get_rating_average
+from .permissions import IsOwnerPermission, IsCustomerPermission, ReviewPatchPermission
 
 ################################################ PROFILE_VIEWS ################################################
 
@@ -44,7 +44,7 @@ class ReviewsListView(generics.ListCreateAPIView):
     ordering_fields = ['updated_at', 'rating']
     queryset = Review.objects.all()
     serializer_class = ReviewSerializer
-    permission_classes = [IsCustomerPermission]
+    permission_classes = [IsCustomerPermission] # wird auch bei order benuzt, ändern?
 
     def perform_create(self, serializer):
         serializer.save(reviewer=self.request.user)
@@ -56,62 +56,6 @@ class ReviewsDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = ReviewSerializer
     permission_classes = [ReviewPatchPermission]
     lookup_field = "pk"
-
-
-################################################ ORDER_VIEWS ################################################
-
-class OrdersView(generics.ListCreateAPIView):
-
-    serializer_class = OrderSerializer
-    permission_classes = [IsCustomerPermission]
-
-    def get_queryset(self):
-        user_type = getattr(self.request.user.userprofile, 'type', None)
-        if user_type == 'customer':
-            queryset = Order.objects.filter(customer_user=self.request.user)
-        elif user_type == 'business':
-            queryset = Order.objects.filter(business_user=self.request.user)
-        return queryset
-
-    def post(self, request):
-        try:
-            offer_detail_id = request.data.get('offer_detail_id', None)
-            offer_detail = OfferDetails.objects.get(id=offer_detail_id)
-            if offer_detail:
-                serializer = OrderSerializer(data=create_new_order(request))
-                if serializer.is_valid():
-                    serializer.save()
-                    return Response(serializer.data, status=status.HTTP_201_CREATED)
-                else:
-                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        except OfferDetails.DoesNotExist:
-            error = {'error': 'Offerdetail with the specified Id not found'}
-            return Response(error, status=status.HTTP_404_NOT_FOUND)
-        except ValueError:
-            error = {'error': 'offer_detail_id must be a number'}
-            return Response(error, status=status.HTTP_400_BAD_REQUEST)
-
-
-class OrdersDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Order.objects.all()
-    serializer_class = OrderSerializer
-    permission_classes = [EditOrderPermission]
-
-
-class OrderInProgressCountView(generics.RetrieveAPIView):
-
-    queryset = User.objects.all()
-    serializer_class = OrderCountSerializer
-
-    def get_queryset(self):
-        pk = self.kwargs.get('pk', None)
-        queryset = User.objects.filter(userprofile__type='business', pk=pk)
-        return queryset
-
-
-class OrderCompleteCountView(OrderInProgressCountView):
-
-    serializer_class = CompletedOrderCountSerializer
 
 class BaseInfoView(GenericAPIView):
 

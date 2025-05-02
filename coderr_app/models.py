@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from offer_app.models import OfferDetails
 
 class UserProfile(models.Model):
 
@@ -20,56 +19,11 @@ class UserProfile(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 
 
-# class Offer(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     title = models.CharField(max_length=255)
-#     image = models.ImageField(upload_to='uploads/', null=True)
-#     description = models.CharField(max_length=255)
-#     created_at = models.DateTimeField(auto_now_add=True)
-#     updated_at = models.DateTimeField(auto_now=True, null=True)
-#     min_price = models.FloatField()
-#     min_delivery_time = models.IntegerField()
-#     user_details = models.JSONField()
-
-
-
-# class OfferDetails(models.Model):
-
-#     TYPE_CHOICES = [('basic', 'Basic'),
-#                     ('standard', 'Standard'),
-#                     ('premium', 'Premium')]
-
-#     offer = models.ForeignKey(Offer, on_delete=models.CASCADE, related_name='details')
-#     title = models.CharField(max_length=255)
-#     revisions = models.IntegerField()
-#     delivery_time_in_days = models.IntegerField()
-#     price = models.FloatField()
-#     features = models.JSONField()
-#     offer_type = models.CharField(max_length=255, choices=TYPE_CHOICES)
-
-
 class Review(models.Model):
     RATING_CHOICES = [(1, 1), (2, 2), (3, 3), (4, 4), (5, 5)]
     business_user = models.ForeignKey(User, on_delete=models.CASCADE)
     reviewer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reviewer')
     rating = models.IntegerField(choices=RATING_CHOICES)
     description = models.CharField(max_length=1024)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-
-class Order(models.Model):
-
-    STATUS_CHOICES = [('in_progress', 'in_progress'),('completed', 'completed'), ('cancelled', 'cancelled')]
-    offer_detail = models.ForeignKey(OfferDetails, related_name='offer_detail', on_delete=models.CASCADE)
-    customer_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    business_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_orders')
-    title = models.CharField(max_length=255)
-    revisions = models.IntegerField()
-    delivery_time_in_days = models.IntegerField()
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    features = models.JSONField()
-    offer_type = models.CharField(max_length=255)
-    status = models.CharField(max_length=25, choices=STATUS_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

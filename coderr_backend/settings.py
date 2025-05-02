@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'django_filters',
     'coderr_app',
     'auth_app',
-    'offer_app'
+    'offer_app',
+    'order_app'
 ]
 
 MIDDLEWARE = [
