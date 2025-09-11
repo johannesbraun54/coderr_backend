@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,16 +25,13 @@ MEDIA_URL = '/media/'
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-*6akb31*k+@iu)c2tg36987jqgs7opmz8ap7t=1)+9*&57orw#'
+SECRET_KEY = os.getenv('SECRET_KEY', default='django-secret-key-123-asd-456-fgh')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = [
-	'34.1.166.178',
-	'coderr-backend.jb-webdevelopment.com',
-    '127.0.0.1']
-
+DEBUG = os.getenv("DEBUG", default=True)
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", default="http://127.0.0.1:5500").split(",")
+CSRF_TRUSTED_ORIGINS = os.getenv("CSRF_TRUSTED_ORIGINS", default="http://127.0.0.1:5500").split(",")
+CORS_ALLOWED_ORIGINS = os.getenv("CORS_ALLOWED_ORIGINS", default="http://127.0.0.1:5500").split(",")
 
 # Application definition
 
@@ -60,22 +60,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-CSRF_TRUSTED_ORIGINS = [
-
-    'http://127.0.0.1:5500',
-
-    'http://localhost:5500',
-
-]
-
-CORS_ALLOWED_ORIGINS = [
-
-    'http://127.0.0.1:5500',
-
-    'http://localhost:5500',
-
 ]
 
 ROOT_URLCONF = 'coderr_backend.urls'

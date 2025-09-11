@@ -46,8 +46,10 @@ Follow these steps to set up the project locally:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/johannesbraun54/coderr_backend.git
-   cd coderr_backend
+    git clone https://github.com/johannesbraun54/coderr_backend.git
+    cd coderr_backend
+    cp .env.template .env
+    # edit .env: SECRET_KEY, DEBUG, ALLOWED_HOSTS etc.
 
 2. **Create a Virtual Environment**
 
