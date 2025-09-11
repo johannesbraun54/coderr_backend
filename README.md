@@ -14,15 +14,15 @@ A Django backend for a JavaScript-based freelancer platform. This repository pro
 
 ## About
 
-**Coderr Backend** is built using Django and is designed to serve as the backbone of a freelancer developer platform. It manages user authentication, project-related operations, and provides API endpoints that allow seamless integration with a JavaScript-based frontend. This project is structured to be modular, secure, and extendable.
+**Coderr Backend** is built using Django and is designed to serve as the backend of a freelancer developer platform. It manages user authentication, project-related operations, and provides API endpoints that allow seamless integration with a JavaScript-based frontend. This project is structured to be modular, secure, and extendable.
 
 ---
 
 ## Features
 
 - **User Authentication:** Secure registration, login, and profile management.
-- **Project Management:** API endpoints for job postings, proposals, and communications.
-- **Modular Architecture:** Organized into separate Django apps (e.g., `auth_app` and `coderr_app`).
+- **Project Management:** API endpoints for offering, ordering and reviewing software services.
+- **Modular Architecture:** Organized into separate Django apps for the accordingly feature: coderr_backend as core, auth_app, offer_app, order_app, review_app
 - **Media Management:** Handles file uploads (e.g., profile images, project documents) stored in `/media/uploads`.
 - **RESTful API Design:** Easy integration with modern JavaScript front-end frameworks.
 
@@ -32,8 +32,8 @@ A Django backend for a JavaScript-based freelancer platform. This repository pro
 
 - **Python 3** – The programming language used.
 - **Django** – The high-level Python web framework powering the backend.
-- **Django REST Framework (optional):** For building RESTful APIs if implemented.
-- **SQLite/PostgreSQL:** The default development database, configurable for production.
+- **Django REST Framework:** For building RESTful APIs.
+- **SQLite:** The default development database.
 
 Additional dependencies can be found in the [requirements.txt](requirements.txt) file.
 
@@ -63,6 +63,7 @@ Follow these steps to set up the project locally:
 
 4. **Apply Migrations**
     ```bash
+    python manage.py makemigrations
     python manage.py migrate
 
 5. **Create a Superuser (Optional)**
