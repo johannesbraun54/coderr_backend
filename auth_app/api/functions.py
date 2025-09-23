@@ -20,7 +20,9 @@ def get_rating_average(reviews_count):
         review = reviews[i]
         rating = review.rating
         ratings.append(rating)
+        print("len(ratings)",len(ratings))
     for rating in ratings:
         rating_sum += rating
+        print("rating_sum", rating_sum)
         review_rating_average = round(rating_sum / len(ratings), 1)
-        return review_rating_average
+    return review_rating_average
