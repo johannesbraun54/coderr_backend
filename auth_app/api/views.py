@@ -15,6 +15,11 @@ from .permissions import IsOwnerPermission
 
 
 class RegistrationView(APIView):
+    """
+    API view for user registration.
+    Validates the 'type' field and creates a user profile upon successful registration.
+    Returns authentication token and user details upon successful registration.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -42,6 +47,10 @@ class RegistrationView(APIView):
 
 
 class CustomLoginView(ObtainAuthToken):
+    """
+    API view for user login.
+    Returns authentication token and user details upon successful login.
+    """
     permission_classes = [AllowAny]
 
     def post(self, request):
@@ -64,7 +73,9 @@ class CustomLoginView(ObtainAuthToken):
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
         
 class ImageUploadView(APIView):
-
+    """
+    API view for uploading user profile images.
+    """
     def post(self, request, format=None):
         serializer = ImageUploadSerializer(data=request.data)
         if serializer.is_valid():
@@ -73,21 +84,34 @@ class ImageUploadView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ProfileView(generics.RetrieveUpdateAPIView):
+    """
+    API view for retrieving and updating user profiles.
+    Only the owner of the profile can access and modify it.
+    """
     permission_classes = [IsOwnerPermission]
     queryset = UserProfile.objects.all()
     serializer_class = UserProfileSerializer
     lookup_field = 'user'
 
 class ProfileBusinessListView(generics.ListAPIView):
+    """
+    API view for listing business user profiles.
+    """
     queryset = UserProfile.objects.filter(type='business')
     serializer_class = UserProfileSerializer
 
 class ProfileCustomerListView(generics.ListAPIView):
+    """
+    API view for listing customer user profiles.
+    """
     queryset = UserProfile.objects.filter(type='customer')
     serializer_class = UserProfileSerializer
 
 class BaseInfoView(GenericAPIView):
-
+    """
+    API view for retrieving base information about the platform.
+    Returns counts of offers, business profiles, reviews, and the average rating.
+    """
     permission_classes = [AllowAny]
 
     def get(self, request):

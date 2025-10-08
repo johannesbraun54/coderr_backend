@@ -1,21 +1,15 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from auth_app.models import UserProfile
+from .functions import check_password_match
 
-def check_email_existence(mail_adress):
-    if User.objects.filter(email=mail_adress).exists():
-        raise serializers.ValidationError({
-            "email": ["Email already exits."]
-        })
 
-def check_password_match(pw, repeated_pw):
-    if pw != repeated_pw:
-        raise serializers.ValidationError({
-            "password": ["Passwords don't matching."]
-        })
 
 class RegistrationSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer for user registration.
+    Validates email uniqueness and password matching.
+    """
     repeated_password = serializers.CharField(write_only=True)
     class Meta:
         model = User
@@ -47,13 +41,17 @@ class RegistrationSerializer(serializers.ModelSerializer):
         return account
 
 class ImageUploadSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer for uploading user profile images.
+    """
     class Meta:
         model = UserProfile
         fields = ['file']
 
 class UserProfileSerializer(serializers.ModelSerializer):
-
+    """
+    Serializer for complete user profiles.
+    """
     class Meta:
         model = UserProfile
         fields = ['user', 'username', 'first_name', 'last_name', 'file', 'location', 
