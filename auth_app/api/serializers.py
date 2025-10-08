@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from auth_app.models import UserProfile
-from .functions import check_password_match
+from .serializer_helpers import check_password_match
 
 
 

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+import sentry_sdk
 
 load_dotenv()
 
@@ -149,3 +150,10 @@ REST_FRAMEWORK = {
     ], 
 
 }
+
+sentry_sdk.init(
+    dsn="https://b16440fd3320688aed59b6f9b16c340c@o4510153913335808.ingest.de.sentry.io/4510153991520336",
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    send_default_pii=True,
+)

@@ -2,8 +2,6 @@ from .serializers import UserProfileSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from review_app.models import Review
-from rest_framework import serializers
-from django.contrib.auth.models import User
 
 
 def set_user_profile(profile_data):
@@ -38,23 +36,3 @@ def get_rating_average(reviews_count):
         print("rating_sum", rating_sum)
         review_rating_average = round(rating_sum / len(ratings), 1)
     return review_rating_average
-
-def check_email_existence(mail_adress):
-    """
-    Checks if the provided email address already exists in the User model.
-    Raises a ValidationError if the email already exists.
-    """
-    if User.objects.filter(email=mail_adress).exists():
-        raise serializers.ValidationError({
-            "email": ["Email already exits."]
-        })
-
-def check_password_match(pw, repeated_pw):
-    """
-    Validates that the provided password and repeated password match.
-    Raises a ValidationError if they do not match.
-    """
-    if pw != repeated_pw:
-        raise serializers.ValidationError({
-            "password": ["Passwords don't matching."]
-        })
